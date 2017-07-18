@@ -25,70 +25,96 @@ use JiraRestApi\JiraException;
 
 use League\Csv\Reader;
 
-const DATE_FORMAT = 'd/m/y H:i:s';
-const DATE_TIMEZONE = 'Europe/Madrid';
+const DATE_FORMAT = 'n/j/y g:i A';
+const DATE_TIMEZONE = 'America/Port-au-Prince';
 
 // Change this to false to do a real import. Make sure column numbers are ok first.
-const TESTING = true;
+const TESTING = FALSE;
 
-$csv = Reader::createFromPath('timelogs.csv');
+$csv = Reader::createFromPath("OfficeTime Report.txt");
+// OfficeTime creates tab separated value lists.
+$delimiter = $csv->setDelimiter("\t");
 
 /**
  * Use offset to skip the header row.
  * Use limit = 1 to test with just 1 row.
  */
-$res = $csv->setOffset(1)->setLimit(1000)->fetchAll();
+$res = $csv->setOffset(1)->setLimit(100)->fetchAll();
 
 foreach ($res as $line) {
     // Just debug print
     print_r($line);
 
-    if (!empty($line[1])) {
-        // FIXME: Make this configurable somehow or autodetected from csv header.
-        $date_value = $line[7];
-        // Time is hardcoded to always the same value.
-        $time_value = "12:00:00";
+    try {
+        $datetime = $line[4];
 
-        // Issue key.
-        $issueKey = $line[12];
+        // Time spent, in hours (decimal format), eg 1.5 (hours)
+        $hours = $line[5];
 
         // The description of the task.
-        $comment  = $line[5];
+        $comment = $line[8];
 
-        // Time spent, in decimal value.
-        // TODO: Automatically convert from a H:M:S format to decimal
-        $hours = $line[13];
+        // Parse the JIRA Issue Key, eg BSP-9, out of comment, supported formats:
+        // BSP-9 - Timesheets
+        // BSP-9 -   Timesheets
+        // BSP-9: Timesheets
+        // BSP-9 : Timesheets
+        // BSP-9  :  Timesheets
+        // BSP-9  Timesheets
+        // https://regex101.com/r/WslRfW/2
+        $result = preg_match_all('/^(\w+-\d+)(\s+)?(-|:)?(\s+)?(.+)/', $comment, $matches);
+        if (!$result) {
+            throw new RuntimeException("Could not find Issue Key in comment: '$comment'");
+        }
+        print_r($matches);
 
-        // Just debug
-        echo "DATE: $date_value TIME: $time_value ISSUE: $issueKey COMMENT: $comment SPENT: $hours\n";
+        $issueKey = $matches[1][0];
+
+        $comment = $matches[5][0];
+
+        if (!$comment) {
+            throw new RuntimeException("Worklog comment missing.");
+        }
 
         // Make sure timezone is correct, it can have an impact on the day the timelog is saved into.
-        $date = DateTime::createFromFormat(DATE_FORMAT, $date_value . ' ' . $time_value, new DateTimeZone(DATE_TIMEZONE));
+        $date = DateTime::createFromFormat(DATE_FORMAT, $datetime, new DateTimeZone(DATE_TIMEZONE));
 
-        echo implode(', ', array($date->format('Y-m-d H:i:s'), $issueKey, $comment, $hours)) . "h\n";
-
-        try {
-            $workLog = new Worklog();
-            $workLog->setComment($comment)
-                ->setStarted($date)
-                ->setTimeSpent($hours . 'h');
-
-            $issueService = new IssueService();
-
-            // Use $testing to test the csv reading without sending to jira
-            if (!TESTING) {
-                $ret = $issueService->addWorklog($issueKey, $workLog);
-                $workLogid = $ret->{'id'};
-
-                // Show output from the api call
-                var_dump($ret);
-            }
-            else {
-                print_r($issueKey);
-                print_r($workLog);
-            }
-        } catch (JiraException $e) {
-            echo 'ERROR: ' .$e->getMessage() . "\n";
+        if (!$date) {
+            throw new RuntimeException("Could not parse date: '$datetime' for format '" . DATE_FORMAT . "'");
+            var_dump(DateTime::getLastErrors());
         }
+
+        $datetime = $date->format('Y-m-d H:i:s');
+
+        // Just debug
+        echo "DATETIME: $datetime ISSUE: $issueKey COMMENT: $comment SPENT: $hours\n";
+
+        echo implode(', ', array($datetime, $issueKey, $comment, $hours)) . "h\n";
+    } catch (RuntimeException $e) {
+       echo 'ERROR: ' .$e->getMessage() . "\n";
+       next;
+    }
+    try {
+        $workLog = new Worklog();
+        $workLog->setComment($comment)
+            ->setStarted($date)
+            ->setTimeSpent($hours . 'h');
+
+        $issueService = new IssueService();
+
+        // Use $testing to test the csv reading without sending to jira
+        if (!TESTING) {
+            $ret = $issueService->addWorklog($issueKey, $workLog);
+            $workLogid = $ret->{'id'};
+
+            // Show output from the api call
+            var_dump($ret);
+        }
+        else {
+            print_r($issueKey);
+            print_r($workLog);
+        }
+    } catch (JiraException $e) {
+        echo 'ERROR: ' .$e->getMessage() . "\n";
     }
 }
