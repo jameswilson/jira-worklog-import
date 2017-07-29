@@ -32,6 +32,13 @@ const DATE_TIMEZONE = 'America/Port-au-Prince';
 const TESTING = FALSE;
 
 $csv = Reader::createFromPath("OfficeTime Report.txt");
+
+$input_bom = $csv->getInputBOM();
+if ($input_bom === Reader::BOM_UTF16_LE || $input_bom === Reader::BOM_UTF16_BE) {
+    print "Converting CSV from UTF-16 to UTF-8\n";
+    $csv->appendStreamFilter('convert.iconv.UTF-16/UTF-8');
+}
+
 // OfficeTime creates tab separated value lists.
 $delimiter = $csv->setDelimiter("\t");
 
