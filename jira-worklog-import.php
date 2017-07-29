@@ -28,8 +28,8 @@ use League\Csv\Reader;
 const DATE_FORMAT = 'n/j/y g:i A';
 const DATE_TIMEZONE = 'America/Port-au-Prince';
 
-// Change this to false to do a real import. Make sure column numbers are ok first.
-const TESTING = FALSE;
+const DRY_RUN = TRUE; // Switch to false to do a real import.
+const DEBUGGING = FALSE; // Switch to true to see debug output in the console.
 
 $csv = Reader::createFromPath("OfficeTime Report.txt");
 
@@ -48,9 +48,17 @@ $delimiter = $csv->setDelimiter("\t");
  */
 $res = $csv->setOffset(1)->setLimit(100)->fetchAll();
 
-foreach ($res as $line) {
-    // Just debug print
-    print_r($line);
+foreach ($res as $linenumber => $line) {
+
+    debug($line);
+
+    print "| " . ($linenumber + 1) . " | ";
+
+    // Detect and skip invalid lines.
+    if (empty($line[0])) {
+        print "⚠️  skipped: " . implode(', ', $line) . " |\n";
+        continue;
+    }
 
     try {
         $datetime = $line[4];
@@ -70,36 +78,33 @@ foreach ($res as $line) {
         // BSP-9  Timesheets
         // https://regex101.com/r/WslRfW/2
         $result = preg_match_all('/^(\w+-\d+)(\s+)?(-|:)?(\s+)?(.+)/', $comment, $matches);
+
         if (!$result) {
+            debug($matches);
             throw new RuntimeException("Could not find Issue Key in comment: '$comment'");
         }
-        print_r($matches);
 
         $issueKey = $matches[1][0];
 
         $comment = $matches[5][0];
 
         if (!$comment) {
-            throw new RuntimeException("Worklog comment missing.");
+            throw new RuntimeException("Worklog comment is required.");
         }
 
         // Make sure timezone is correct, it can have an impact on the day the timelog is saved into.
         $date = DateTime::createFromFormat(DATE_FORMAT, $datetime, new DateTimeZone(DATE_TIMEZONE));
 
         if (!$date) {
+            debug(DateTime::getLastErrors());
             throw new RuntimeException("Could not parse date: '$datetime' for format '" . DATE_FORMAT . "'");
-            var_dump(DateTime::getLastErrors());
         }
 
         $datetime = $date->format('Y-m-d H:i:s');
 
-        // Just debug
-        echo "DATETIME: $datetime ISSUE: $issueKey COMMENT: $comment SPENT: $hours\n";
-
-        echo implode(', ', array($datetime, $issueKey, $comment, $hours)) . "h\n";
-    } catch (RuntimeException $e) {
-       echo 'ERROR: ' .$e->getMessage() . "\n";
-       next;
+    } catch (Exception $e) {
+       log_error($e->getMessage());
+       continue;
     }
     try {
         $workLog = new Worklog();
@@ -109,19 +114,40 @@ foreach ($res as $line) {
 
         $issueService = new IssueService();
 
-        // Use $testing to test the csv reading without sending to jira
-        if (!TESTING) {
+        // Do not submit worklogs to Jira.
+        if (DRY_RUN) {
+            print "🕑  dry-run | ${issueKey} | ${datetime} | ${hours}h | ${comment} |\n";
+        }
+        // Submit worklog to Jira.
+        else {
             $ret = $issueService->addWorklog($issueKey, $workLog);
             $workLogid = $ret->{'id'};
-
+            print "✅  logged ($workLogid) | ${issueKey} | ${datetime} | ${hours}h | ${comment} |\n";
             // Show output from the api call
-            var_dump($ret);
-        }
-        else {
-            print_r($issueKey);
-            print_r($workLog);
+            debug($ret);
         }
     } catch (JiraException $e) {
-        echo 'ERROR: ' .$e->getMessage() . "\n";
+        log_error($e->getMessage());
+    }
+}
+
+function debug($var = '') {
+    if (DEBUGGING) {
+        if (!empty($var)) {
+            print("\n");
+            print("👷  = ");
+            var_export($var);
+            print("\n");
+            print("\n");
+        }
+    }
+}
+
+function log_error($var = '') {
+    if (!empty($var)) {
+        print("\n");
+        print("🛑  ️");
+        print_r($var);
+        print("\n");
     }
 }
