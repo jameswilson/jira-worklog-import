@@ -76,8 +76,9 @@ foreach ($res as $linenumber => $line) {
         // BSP-9 : Timesheets
         // BSP-9  :  Timesheets
         // BSP-9  Timesheets
-        // https://regex101.com/r/WslRfW/2
-        $result = preg_match_all('/^(\w+-\d+)(\s+)?(-|:)?(\s+)?(.+)/', $comment, $matches);
+        // BSP-9. Timesheets
+        // https://regex101.com/r/WslRfW/3
+        $result = preg_match_all('/^(\w+-\d+)(\s+)?(-|:|\.)?(\s+)?(.+)/', $comment, $matches);
 
         if (!$result) {
             debug($matches);
