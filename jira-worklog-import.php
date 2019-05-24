@@ -19,6 +19,7 @@ if (!ini_get("auto_detect_line_endings")) {
     ini_set("auto_detect_line_endings", '1');
 }
 
+use JiraRestApi\Issue\ContentField;
 use JiraRestApi\Issue\IssueService;
 use JiraRestApi\Issue\Worklog;
 use JiraRestApi\JiraException;
@@ -109,7 +110,19 @@ foreach ($res as $linenumber => $line) {
     }
     try {
         $workLog = new Worklog();
-        $workLog->setComment($comment)
+
+        $paragraph = new ContentField();
+        $paragraph->type = "paragraph";
+        $paragraph->content[] = [
+            "text" => $comment,
+            "type" => "text",
+        ];
+        $document = new ContentField();
+        $document->type = "doc";
+        $document->version = 1;
+        $document->content[] = $paragraph;
+
+        $workLog->setComment($document)
             ->setStarted($date)
             ->setTimeSpent($hours . 'h');
 

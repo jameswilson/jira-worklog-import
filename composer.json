@@ -6,8 +6,14 @@
             "email": "peterlozano@gmail.com"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jameswilson/php-jira-rest-client"
+        }
+    ],
     "require": {
         "league/csv": "^8.1",
-        "lesstif/php-jira-rest-client": "1.39.0"
+        "lesstif/php-jira-rest-client": "dev-issue-254"
     }
 }
