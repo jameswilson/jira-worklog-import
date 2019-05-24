@@ -8,6 +8,6 @@
     ],
     "require": {
         "league/csv": "^8.1",
-        "lesstif/php-jira-rest-client": "^1.9"
+        "lesstif/php-jira-rest-client": "1.39.0"
     }
 }

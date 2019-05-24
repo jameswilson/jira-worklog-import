@@ -1,11 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "hash": "45aa45bb4542050161c40edab64d8b78",
-    "content-hash": "be227e59929028d918de9e34926bcdf1",
+    "content-hash": "8e15355535893272e34729049a821186",
     "packages": [
         {
             "name": "league/csv",
@@ -62,34 +61,43 @@
                 "read",
                 "write"
             ],
-            "time": "2016-10-27 11:21:24"
+            "time": "2016-10-27T11:21:24+00:00"
         },
         {
             "name": "lesstif/php-jira-rest-client",
-            "version": "1.9.4",
+            "version": "1.39.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lesstif/php-jira-rest-client.git",
-                "reference": "f54321635afe8b38d8d16e01b8e5176a9182e8bc"
+                "reference": "db7b229ef0e20a75b06457bdea9f29441c314f67"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lesstif/php-jira-rest-client/zipball/f54321635afe8b38d8d16e01b8e5176a9182e8bc",
-                "reference": "f54321635afe8b38d8d16e01b8e5176a9182e8bc",
+                "url": "https://api.github.com/repos/lesstif/php-jira-rest-client/zipball/db7b229ef0e20a75b06457bdea9f29441c314f67",
+                "reference": "db7b229ef0e20a75b06457bdea9f29441c314f67",
                 "shasum": ""
             },
             "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
                 "monolog/monolog": "~1.12",
                 "netresearch/jsonmapper": "~0.11|^1.0",
-                "php": ">=5.4.0",
-                "vlucas/phpdotenv": "~2.0"
+                "php": ">=5.5.9",
+                "vlucas/phpdotenv": "~1.0|~2.0|^3.0"
             },
             "require-dev": {
                 "mockery/mockery": "^0.9.4",
-                "phpunit/phpunit": "~4.4",
+                "phpunit/phpunit": ">=5.7 <6",
                 "symfony/var-dumper": "~2.8|~3.0"
             },
             "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "JiraRestApi\\JiraRestApiServiceProvider"
+                    ]
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "JiraRestApi\\": "src"
@@ -97,7 +105,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "Apache 2.0"
+                "Apache-2.0"
             ],
             "authors": [
                 {
@@ -113,7 +121,7 @@
                 "jira-rest",
                 "rest"
             ],
-            "time": "2017-01-20 17:22:23"
+            "time": "2019-05-22T07:34:53+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -191,7 +199,7 @@
                 "logging",
                 "psr-3"
             ],
-            "time": "2016-11-26 00:15:39"
+            "time": "2016-11-26T00:15:39+00:00"
         },
         {
             "name": "netresearch/jsonmapper",
@@ -230,7 +238,7 @@
                 }
             ],
             "description": "Map nested JSON structures onto PHP classes",
-            "time": "2016-11-17 06:34:01"
+            "time": "2016-11-17T06:34:01+00:00"
         },
         {
             "name": "psr/log",
@@ -277,7 +285,7 @@
                 "psr",
                 "psr-3"
             ],
-            "time": "2016-10-10 12:19:37"
+            "time": "2016-10-10T12:19:37+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -327,7 +335,7 @@
                 "env",
                 "environment"
             ],
-            "time": "2016-09-01 10:05:43"
+            "time": "2016-09-01T10:05:43+00:00"
         }
     ],
     "packages-dev": [],
