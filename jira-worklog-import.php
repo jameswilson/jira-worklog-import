@@ -65,10 +65,10 @@ foreach ($res as $linenumber => $line) {
         $datetime = $line[4];
 
         // Time spent, in hours (decimal format), eg 1.5 (hours)
-        $hours = $line[5];
+        $hours = $line[6];
 
         // The description of the task.
-        $comment = $line[8];
+        $comment = $line[9];
 
         // Parse the JIRA Issue Key, eg BSP-9, out of comment, supported formats:
         // BSP-9 - Timesheets
