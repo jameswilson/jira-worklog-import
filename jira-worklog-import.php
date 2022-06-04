@@ -29,7 +29,7 @@ use League\Csv\Reader;
 const DATE_FORMAT = 'n/j/y g:i A';
 const DATE_TIMEZONE = 'America/Port-au-Prince';
 
-const DRY_RUN = TRUE; // Switch to false to do a real import.
+const DRY_RUN = FALSE; // Switch to false to do a real import.
 const DEBUGGING = FALSE; // Switch to true to see debug output in the console.
 
 $csv = Reader::createFromPath("OfficeTime Report.txt");
@@ -47,7 +47,7 @@ $delimiter = $csv->setDelimiter("\t");
  * Use offset to skip the header row.
  * Use limit = 1 to test with just 1 row.
  */
-$res = $csv->setOffset(1)->setLimit(100)->fetchAll();
+$res = $csv->setOffset(1)->setLimit(200)->fetchAll();
 
 foreach ($res as $linenumber => $line) {
 
