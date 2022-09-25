@@ -108,9 +108,10 @@ foreach ($res as $linenumber => $line) {
 
     $datetime = $date->format('Y-m-d H:i:s');
 
-  } catch (Exception $e) {
-     log_error($e->getMessage());
-     continue;
+  }
+  catch (Exception $e) {
+    log_error($e->getMessage());
+    continue;
   }
   try {
     $workLog = new Worklog();
