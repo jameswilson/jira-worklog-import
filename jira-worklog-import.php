@@ -29,7 +29,7 @@ use JiraRestApi\JiraException;
 use League\Csv\Reader;
 
 const DATE_FORMAT = 'n/j/y g:i A';
-const DATE_TIMEZONE = 'America/Port-au-Prince';
+const DATE_TIMEZONE = 'America/Bogota';
 
 const DRY_RUN = FALSE; // Switch to false to do a real import.
 const DEBUGGING = FALSE; // Switch to true to see debug output in the console.
