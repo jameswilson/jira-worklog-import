@@ -133,16 +133,16 @@ foreach ($res as $linenumber => $line) {
 
     $issueService = new IssueService();
 
-    // Do not submit worklogs to Jira.
+    // Do not submit work logs to Jira.
     if (DRY_RUN) {
       print "🕑  dry-run | ${issueKey} | ${datetime} | ${hours}h | ${comment} |\n";
     }
-    // Submit worklog to Jira.
+    // Submit work log to Jira.
     else {
       $ret = $issueService->addWorklog($issueKey, $workLog);
-      $workLogid = $ret->{'id'};
-      print "✅  logged ($workLogid) | ${issueKey} | ${datetime} | ${hours}h | ${comment} |\n";
-      // Show output from the api call.
+      $workLogId = $ret->{'id'};
+      print "✅  logged ($workLogId) | ${issueKey} | ${datetime} | ${hours}h | ${comment} |\n";
+      // Show output from the API call.
       debug($ret);
     }
   }
