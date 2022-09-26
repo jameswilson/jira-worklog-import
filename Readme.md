@@ -1,6 +1,6 @@
-# CSV to Jira
+# JSON to Jira
 
-This script allows to import a CSV file containing worklogs into Jira.
+This script allows to import a JSON file containing worklogs into Jira.
 
 Install:
 
@@ -20,12 +20,12 @@ JIRA_PASS=""
 
 Usage:
 
-* Make sure the csv file contains the following fields:
+* Make sure the json file contains the following fields:
   * Date
   * Jira issue key
   * Description of the worklog
   * Time spent
-  
+
 * Adjust column numbers manually in script.
 
 * Do a test run, make sure TESTING = true in the script.
