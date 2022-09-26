@@ -1,19 +1,17 @@
 {
-    "name": "peterlozano/jira-worklog-import",
-    "authors": [
-        {
-            "name": "Pedro Lozano",
-            "email": "peterlozano@gmail.com"
-        }
-    ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/jameswilson/php-jira-rest-client"
-        }
-    ],
-    "require": {
-        "league/csv": "^8.1",
-        "lesstif/php-jira-rest-client": "dev-issue-254"
+  "name": "jameswilson/jira-worklog-import",
+  "authors": [
+    {
+      "name": "James Wilson",
+      "email": "jrwilson3@gmail.com"
+    },
+    {
+      "name": "Pedro Lozano",
+      "email": "peterlozano@gmail.com"
     }
+  ],
+  "require": {
+    "league/csv": "^8.1",
+    "lesstif/jira-cloud-restapi": "^1.0"
+  }
 }
