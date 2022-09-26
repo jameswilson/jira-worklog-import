@@ -2,7 +2,7 @@
 
 This script allows to import a JSON file containing worklogs into Jira.
 
-Install:
+### Install:
 
 ```
 git clone https://github.com/peterlozano/jira-worklog-import.git
@@ -10,7 +10,7 @@ cd jira-worklog-import
 composer install
 ```
 
-Create a .env file with the following:
+Create a .env file at least with the following info:
 
 ```
 JIRA_HOST="https://<SUBDOMAIN>.atlassian.net"
@@ -18,13 +18,13 @@ JIRA_USER=""
 JIRA_PASS=""
 ```
 
-Usage:
+### Usage:
 
 * Make sure the json file contains the following fields:
   * Date
   * Jira issue key
   * Description of the worklog
-  * Time spent
+  * Time spent (in `HH:MM:SS` format)
 
 * Adjust column numbers manually in script.
 

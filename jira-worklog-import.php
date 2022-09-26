@@ -9,7 +9,6 @@
  * JIRA_USER=""
  * JIRA_PASS=""
  *
- * TODO: Automatically convert H:M:S work log spent time into decimal.
  * TODO: Automatically fetch time from Timing.app.
  * TODO: Use console library to have some console help and parameters.
  *       (ie: debug, testing, source file)
