@@ -33,7 +33,7 @@ $dotenv->load();
 const DATE_FORMAT = DateTime::ISO8601;
 const DATE_TIMEZONE = 'America/Bogota';
 
-const DRY_RUN = TRUE;
+const DRY_RUN = FALSE;
 const DEBUGGING = FALSE;
 
 const INPUT_FILE = 'All Activities.json';
