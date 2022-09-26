@@ -17,8 +17,8 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-if (!ini_get("auto_detect_line_endings")) {
-  ini_set("auto_detect_line_endings", '1');
+if (!ini_get('auto_detect_line_endings')) {
+  ini_set('auto_detect_line_endings', '1');
 }
 
 use JiraRestApi\Issue\ContentField;
