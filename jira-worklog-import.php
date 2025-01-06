@@ -9,8 +9,8 @@
  * JIRA_USER=""
  * JIRA_PASS=""
  *
- * TODO: Automatically fetch time from Timing.app.
- * TODO: Use console library to have some console help and parameters.
+ * @todo Automatically fetch time from Timing.app.
+ * @todo Use console library to have some console help and parameters.
  *       (ie: debug, testing, source file)
  */
 
