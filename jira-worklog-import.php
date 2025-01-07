@@ -35,7 +35,7 @@ const DATE_TIMEZONE = 'America/Bogota';
 const DRY_RUN = FALSE;
 const DEBUGGING = FALSE;
 
-const INPUT_FILE = 'All Activities.json';
+const INPUT_FILE = 'files/All Activities.json';
 
 $input_file = new SplFileInfo(INPUT_FILE);
 
@@ -279,7 +279,7 @@ function log_row(Object $row) {
  */
 function write($string) {
   print($string . PHP_EOL);
-  $fp = fopen('jira-worklog-import.log', 'a');
+  $fp = fopen('files/jira-worklog-import.log', 'a');
   fwrite($fp, $string . PHP_EOL);
   fclose($fp);
 }
