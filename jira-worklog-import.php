@@ -16,10 +16,6 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-if (!ini_get('auto_detect_line_endings')) {
-  ini_set('auto_detect_line_endings', '1');
-}
-
 use Dotenv\Dotenv;
 use JiraRestApi\Issue\ContentField;
 use JiraRestApi\Issue\IssueService;
@@ -48,6 +44,10 @@ write(' Date: ' . date('c'));
 write(str_repeat('=', 80));
 
 $file = file_get_contents(INPUT_FILE);
+
+// Normalize line endings to Unix style
+$file = str_replace(["\r\n", "\r"], "\n", $file);
+
 $json = json_decode($file);
 
 foreach ($json as $linenumber => $line) {
