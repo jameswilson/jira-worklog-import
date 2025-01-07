@@ -16,20 +16,15 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-if (!ini_get('auto_detect_line_endings')) {
-  ini_set('auto_detect_line_endings', '1');
-}
-
 use Dotenv\Dotenv;
-use JiraRestApi\Issue\ContentField;
 use JiraRestApi\Issue\IssueService;
 use JiraRestApi\Issue\Worklog;
 use JiraRestApi\JiraException;
 
-$dotenv = Dotenv::create(__DIR__);
+$dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-const DATE_FORMAT = DateTime::ISO8601;
+const DATE_FORMAT = DateTime::ATOM;
 const DATE_TIMEZONE = 'America/Bogota';
 
 const DRY_RUN = FALSE;
@@ -48,6 +43,10 @@ write(' Date: ' . date('c'));
 write(str_repeat('=', 80));
 
 $file = file_get_contents(INPUT_FILE);
+
+// Normalize line endings to Unix style
+$file = str_replace(["\r\n", "\r"], "\n", $file);
+
 $json = json_decode($file);
 
 foreach ($json as $linenumber => $line) {
@@ -108,18 +107,9 @@ foreach ($json as $linenumber => $line) {
   try {
     $workLog = new Worklog();
 
-    $paragraph = new ContentField();
-    $paragraph->type = "paragraph";
-    $paragraph->content[] = [
-      "text" => str_replace('\n', "\n", $row->comment),
-      "type" => "text",
-    ];
-    $document = new ContentField();
-    $document->type = "doc";
-    $document->version = 1;
-    $document->content[] = $paragraph;
+    $comment = str_replace('\n', "\n", $row->comment);
 
-    $workLog->setComment($document)
+    $workLog->setComment($comment)
       ->setStarted($row->datetime)
       ->setTimeSpent($row->hours);
 
