@@ -22,7 +22,7 @@ use JiraRestApi\Issue\IssueService;
 use JiraRestApi\Issue\Worklog;
 use JiraRestApi\JiraException;
 
-$dotenv = Dotenv::create(__DIR__);
+$dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 const DATE_FORMAT = DateTime::ISO8601;
