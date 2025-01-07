@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cdb410cf07a58c2fb772ce7ce12ebb3d",
+    "content-hash": "a5d00c17075fdd0cdd583ea1777ab837",
     "packages": [
         {
             "name": "graham-campbell/result-type",
@@ -132,23 +132,23 @@
         },
         {
             "name": "lesstif/php-jira-rest-client",
-            "version": "5.6.0",
+            "version": "5.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lesstif/php-jira-rest-client.git",
-                "reference": "35be23fe1762048e0af16a9b4e9faa3227bf57d0"
+                "reference": "06c20a4b6ff263cbbeb90b270f49ac8e697e320f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lesstif/php-jira-rest-client/zipball/35be23fe1762048e0af16a9b4e9faa3227bf57d0",
-                "reference": "35be23fe1762048e0af16a9b4e9faa3227bf57d0",
+                "url": "https://api.github.com/repos/lesstif/php-jira-rest-client/zipball/06c20a4b6ff263cbbeb90b270f49ac8e697e320f",
+                "reference": "06c20a4b6ff263cbbeb90b270f49ac8e697e320f",
                 "shasum": ""
             },
             "require": {
                 "ext-curl": "*",
                 "ext-json": "*",
                 "monolog/monolog": "^2.0|^3.0",
-                "netresearch/jsonmapper": "^3.0|^4.0|^5.0",
+                "netresearch/jsonmapper": "^4.2",
                 "php": "^8.0"
             },
             "require-dev": {
@@ -193,22 +193,22 @@
             ],
             "support": {
                 "issues": "https://github.com/lesstif/php-jira-rest-client/issues",
-                "source": "https://github.com/lesstif/php-jira-rest-client/tree/5.6.0"
+                "source": "https://github.com/lesstif/php-jira-rest-client/tree/5.9.0"
             },
-            "time": "2023-09-06T12:42:55+00:00"
+            "time": "2024-09-16T11:00:42+00:00"
         },
         {
             "name": "monolog/monolog",
-            "version": "3.2.0",
+            "version": "3.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "305444bc6fb6c89e490f4b34fa6e979584d7fa81"
+                "reference": "aef6ee73a77a66e404dd6540934a9ef1b3c855b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/305444bc6fb6c89e490f4b34fa6e979584d7fa81",
-                "reference": "305444bc6fb6c89e490f4b34fa6e979584d7fa81",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/aef6ee73a77a66e404dd6540934a9ef1b3c855b4",
+                "reference": "aef6ee73a77a66e404dd6540934a9ef1b3c855b4",
                 "shasum": ""
             },
             "require": {
@@ -223,17 +223,19 @@
                 "doctrine/couchdb": "~1.0@dev",
                 "elasticsearch/elasticsearch": "^7 || ^8",
                 "ext-json": "*",
-                "graylog2/gelf-php": "^1.4.2",
-                "guzzlehttp/guzzle": "^7.4",
+                "graylog2/gelf-php": "^1.4.2 || ^2.0",
+                "guzzlehttp/guzzle": "^7.4.5",
                 "guzzlehttp/psr7": "^2.2",
                 "mongodb/mongodb": "^1.8",
                 "php-amqplib/php-amqplib": "~2.4 || ^3",
-                "phpstan/phpstan": "^1.4",
-                "phpstan/phpstan-deprecation-rules": "^1.0",
-                "phpstan/phpstan-strict-rules": "^1.1",
-                "phpunit/phpunit": "^9.5.16",
-                "predis/predis": "^1.1",
-                "ruflin/elastica": "^7",
+                "php-console/php-console": "^3.1.8",
+                "phpstan/phpstan": "^2",
+                "phpstan/phpstan-deprecation-rules": "^2",
+                "phpstan/phpstan-strict-rules": "^2",
+                "phpunit/phpunit": "^10.5.17 || ^11.0.7",
+                "predis/predis": "^1.1 || ^2",
+                "rollbar/rollbar": "^4.0",
+                "ruflin/elastica": "^7 || ^8",
                 "symfony/mailer": "^5.4 || ^6",
                 "symfony/mime": "^5.4 || ^6"
             },
@@ -284,7 +286,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/3.2.0"
+                "source": "https://github.com/Seldaek/monolog/tree/3.8.1"
             },
             "funding": [
                 {
@@ -296,20 +298,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-07-24T12:00:55+00:00"
+            "time": "2024-12-05T17:15:07+00:00"
         },
         {
             "name": "netresearch/jsonmapper",
-            "version": "v4.0.0",
+            "version": "v4.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cweiske/jsonmapper.git",
-                "reference": "8bbc021a8edb2e4a7ea2f8ad4fa9ec9dce2fcb8d"
+                "reference": "8e76efb98ee8b6afc54687045e1b8dba55ac76e5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cweiske/jsonmapper/zipball/8bbc021a8edb2e4a7ea2f8ad4fa9ec9dce2fcb8d",
-                "reference": "8bbc021a8edb2e4a7ea2f8ad4fa9ec9dce2fcb8d",
+                "url": "https://api.github.com/repos/cweiske/jsonmapper/zipball/8e76efb98ee8b6afc54687045e1b8dba55ac76e5",
+                "reference": "8e76efb98ee8b6afc54687045e1b8dba55ac76e5",
                 "shasum": ""
             },
             "require": {
@@ -320,7 +322,7 @@
                 "php": ">=7.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "~7.5 || ~8.0 || ~9.0",
+                "phpunit/phpunit": "~7.5 || ~8.0 || ~9.0 || ~10.0",
                 "squizlabs/php_codesniffer": "~3.5"
             },
             "type": "library",
@@ -345,9 +347,9 @@
             "support": {
                 "email": "cweiske@cweiske.de",
                 "issues": "https://github.com/cweiske/jsonmapper/issues",
-                "source": "https://github.com/cweiske/jsonmapper/tree/v4.0.0"
+                "source": "https://github.com/cweiske/jsonmapper/tree/v4.5.0"
             },
-            "time": "2020-12-01T19:48:11+00:00"
+            "time": "2024-09-08T10:13:13+00:00"
         },
         {
             "name": "phpoption/phpoption",
@@ -426,16 +428,16 @@
         },
         {
             "name": "psr/log",
-            "version": "3.0.0",
+            "version": "3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "fe5ea303b0887d5caefd3d431c3e61ad47037001"
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001",
-                "reference": "fe5ea303b0887d5caefd3d431c3e61ad47037001",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
                 "shasum": ""
             },
             "require": {
@@ -470,9 +472,9 @@
                 "psr-3"
             ],
             "support": {
-                "source": "https://github.com/php-fig/log/tree/3.0.0"
+                "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
-            "time": "2021-07-14T16:46:02+00:00"
+            "time": "2024-09-11T13:17:53+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
