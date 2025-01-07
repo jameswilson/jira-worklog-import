@@ -25,7 +25,7 @@ use JiraRestApi\JiraException;
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-const DATE_FORMAT = DateTime::ISO8601;
+const DATE_FORMAT = DateTime::ATOM;
 const DATE_TIMEZONE = 'America/Bogota';
 
 const DRY_RUN = FALSE;
