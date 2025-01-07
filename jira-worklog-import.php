@@ -17,7 +17,6 @@
 require __DIR__ . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
-use JiraRestApi\Issue\ContentField;
 use JiraRestApi\Issue\IssueService;
 use JiraRestApi\Issue\Worklog;
 use JiraRestApi\JiraException;
@@ -108,18 +107,9 @@ foreach ($json as $linenumber => $line) {
   try {
     $workLog = new Worklog();
 
-    $paragraph = new ContentField();
-    $paragraph->type = "paragraph";
-    $paragraph->content[] = [
-      "text" => str_replace('\n', "\n", $row->comment),
-      "type" => "text",
-    ];
-    $document = new ContentField();
-    $document->type = "doc";
-    $document->version = 1;
-    $document->content[] = $paragraph;
+    $comment = str_replace('\n', "\n", $row->comment);
 
-    $workLog->setComment($document)
+    $workLog->setComment($comment)
       ->setStarted($row->datetime)
       ->setTimeSpent($row->hours);
 
