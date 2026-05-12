@@ -104,6 +104,7 @@ foreach ($json as $linenumber => $line) {
     log_row($row);
     continue;
   }
+  $api_response = NULL;
   try {
     $workLog = new Worklog();
 
@@ -119,7 +120,6 @@ foreach ($json as $linenumber => $line) {
     if (DRY_RUN) {
       $row->status = "🕓";
       $row->status_message = "dry-run";
-      $api_response = NULL;
     }
     // Submit work log to Jira.
     else {

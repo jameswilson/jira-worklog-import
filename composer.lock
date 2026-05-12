@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a5d00c17075fdd0cdd583ea1777ab837",
+    "content-hash": "d1e31880a0231186659bfce141796320",
     "packages": [
         {
             "name": "graham-campbell/result-type",
@@ -132,33 +132,31 @@
         },
         {
             "name": "lesstif/php-jira-rest-client",
-            "version": "5.9.0",
+            "version": "5.12.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lesstif/php-jira-rest-client.git",
-                "reference": "06c20a4b6ff263cbbeb90b270f49ac8e697e320f"
+                "reference": "ae3903243b6d5b307f7d2de4eda5cbe7741a2250"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lesstif/php-jira-rest-client/zipball/06c20a4b6ff263cbbeb90b270f49ac8e697e320f",
-                "reference": "06c20a4b6ff263cbbeb90b270f49ac8e697e320f",
+                "url": "https://api.github.com/repos/lesstif/php-jira-rest-client/zipball/ae3903243b6d5b307f7d2de4eda5cbe7741a2250",
+                "reference": "ae3903243b6d5b307f7d2de4eda5cbe7741a2250",
                 "shasum": ""
             },
             "require": {
                 "ext-curl": "*",
                 "ext-json": "*",
                 "monolog/monolog": "^2.0|^3.0",
-                "netresearch/jsonmapper": "^4.2",
-                "php": "^8.0"
+                "netresearch/jsonmapper": "^4.2|^5.0",
+                "php": "^8.0",
+                "vlucas/phpdotenv": "^5.0|^6.0"
             },
             "require-dev": {
                 "mockery/mockery": "^1.0|^2.0",
                 "phpstan/phpstan": "^1.0|^2.0",
                 "phpunit/phpunit": "^9.0|^10.0",
                 "symfony/var-dumper": "^5.0|^6.0|^7.0"
-            },
-            "suggest": {
-                "vlucas/phpdotenv": "^5.0|^6.0"
             },
             "type": "library",
             "extra": {
@@ -193,9 +191,9 @@
             ],
             "support": {
                 "issues": "https://github.com/lesstif/php-jira-rest-client/issues",
-                "source": "https://github.com/lesstif/php-jira-rest-client/tree/5.9.0"
+                "source": "https://github.com/lesstif/php-jira-rest-client/tree/5.12.1"
             },
-            "time": "2024-09-16T11:00:42+00:00"
+            "time": "2026-01-05T14:15:56+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -808,5 +806,5 @@
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
