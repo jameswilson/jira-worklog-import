@@ -4,10 +4,16 @@
  * @file
  * Script to import a csv file with time logs to Jira.
  *
- * Jira credentials must be on an .env file with this format:
+ * Jira credentials must be on an .env file in this directory, for example:
  * JIRA_HOST="https://<SUBDOMAIN>.atlassian.net"
- * JIRA_USER=""
- * JIRA_PASS=""
+ * JIRA_USER="you@company.com"
+ * JIRA_PASS="<API token from https://id.atlassian.com/manage-profile/security/api-tokens>"
+ * TOKEN_BASED_AUTH=false
+ *
+ * Jira Cloud: use Basic auth (TOKEN_BASED_AUTH false) with email + API token.
+ * If TOKEN_BASED_AUTH=true, the client sends Bearer PERSONAL_ACCESS_TOKEN
+ * (Data Center style), not JIRA_PASS — wrong mode yields Seraph
+ * AUTHENTICATED_FAILED and a generic "issue does not exist" body.
  *
  * @todo Automatically fetch time from Timing.app.
  * @todo Use console library to have some console help and parameters.
@@ -17,12 +23,16 @@
 require __DIR__ . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
+use JiraRestApi\Configuration\DotEnvConfiguration;
 use JiraRestApi\Issue\IssueService;
 use JiraRestApi\Issue\Worklog;
 use JiraRestApi\JiraException;
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
+
+// Read the same .env as this script regardless of process CWD (lesstif defaults to ".").
+$issueService = new IssueService(new DotEnvConfiguration(__DIR__));
 
 const DATE_FORMAT = DateTime::ATOM;
 const DATE_TIMEZONE = 'America/Bogota';
@@ -31,6 +41,9 @@ const DRY_RUN = FALSE;
 const DEBUGGING = FALSE;
 
 const INPUT_FILE = 'files/All Activities.json';
+
+/** @see jira_preflight_auth() */
+const JIRA_API_TOKEN_HELP_URL = 'https://id.atlassian.com/manage-profile/security/api-tokens';
 
 $input_file = new SplFileInfo(INPUT_FILE);
 
@@ -41,6 +54,8 @@ write(' Input: ' . $input_file->getRealPath());
 write(' Endpoint: ' . $_ENV['JIRA_HOST']);
 write(' Date: ' . date('c'));
 write(str_repeat('=', 80));
+
+jira_preflight_auth();
 
 $file = file_get_contents(INPUT_FILE);
 
@@ -114,8 +129,6 @@ foreach ($json as $linenumber => $line) {
       ->setStarted($row->datetime)
       ->setTimeSpent($row->hours);
 
-    $issueService = new IssueService();
-
     // Do not submit work logs to Jira.
     if (DRY_RUN) {
       $row->status = "🕓";
@@ -131,12 +144,134 @@ foreach ($json as $linenumber => $line) {
   }
   catch (JiraException $e) {
     $row->status = "🔴";
-    $row->status_message = "api error: " . $e->getMessage();
+    $row->status_message = "api error: " . jira_format_api_exception($e);
     debug($e);
   }
   debug($api_response);
   debug($row);
   log_row($row);
+}
+
+/**
+ * Calls GET /rest/api/2/myself so failures surface as auth errors, not issue 404s.
+ *
+ * Jira often returns HTTP 404 and "Issue does not exist..." when login actually
+ * failed (e.g. revoked API token). Seraph sets x-seraph-loginreason on failure.
+ */
+function jira_preflight_auth(): void {
+  if (DRY_RUN) {
+    return;
+  }
+  $cookieAuth = filter_var($_ENV['COOKIE_AUTH_ENABLED'] ?? FALSE, FILTER_VALIDATE_BOOLEAN);
+  if ($cookieAuth) {
+    return;
+  }
+
+  $host = rtrim((string) ($_ENV['JIRA_HOST'] ?? ''), '/');
+  if ($host === '') {
+    return;
+  }
+
+  $url = $host . '/rest/api/2/myself';
+  $seraph_reason = '';
+
+  $headers = ['Accept: application/json'];
+  $opts = [
+    CURLOPT_URL => $url,
+    CURLOPT_RETURNTRANSFER => TRUE,
+    CURLOPT_HEADERFUNCTION => static function ($ch, $header) use (&$seraph_reason): int {
+      if (preg_match('/^x-seraph-loginreason:\\s*(.+)\\s*$/i', $header, $m)) {
+        $seraph_reason = trim($m[1]);
+      }
+      return strlen($header);
+    },
+  ];
+
+  $token_mode = filter_var($_ENV['TOKEN_BASED_AUTH'] ?? FALSE, FILTER_VALIDATE_BOOLEAN);
+  if ($token_mode) {
+    $headers[] = 'Authorization: Bearer ' . (string) ($_ENV['PERSONAL_ACCESS_TOKEN'] ?? '');
+  }
+  else {
+    $user = (string) ($_ENV['JIRA_USER'] ?? '');
+    $pass = (string) ($_ENV['JIRA_PASS'] ?? '');
+    if ($user === '' || $pass === '') {
+      return;
+    }
+    $opts[CURLOPT_USERPWD] = $user . ':' . $pass;
+  }
+
+  $opts[CURLOPT_HTTPHEADER] = $headers;
+
+  $ch = curl_init();
+  curl_setopt_array($ch, $opts);
+  $body = curl_exec($ch);
+  $errno = curl_errno($ch);
+  $curl_error = curl_error($ch);
+  $http = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+  curl_close($ch);
+
+  if ($errno !== 0) {
+    write('');
+    write('Jira connection check failed before import (curl): ' . $curl_error);
+    exit(1);
+  }
+
+  $seraph_failed = ($seraph_reason !== '' && stripos($seraph_reason, 'AUTHENTICATED_FAILED') !== FALSE);
+  if ($http === 200 && !$seraph_failed) {
+    return;
+  }
+
+  write('');
+  write(str_repeat('=', 80));
+  write(' Jira authentication failed (preflight: GET /rest/api/2/myself)');
+  write(' URL: ' . $url);
+  write(' HTTP status: ' . $http);
+  if ($seraph_reason !== '') {
+    write(' x-seraph-loginreason: ' . $seraph_reason);
+  }
+  $snippet = is_string($body) ? trim(substr($body, 0, 500)) : '';
+  if ($snippet !== '') {
+    write(' Response snippet: ' . $snippet);
+  }
+  write(str_repeat('-', 80));
+  write(' Atlassian rejected these credentials (wrong password, revoked token,');
+  write(' wrong email for the token, or TOKEN_BASED_AUTH / cookie settings).');
+  write(' Jira often hides that behind HTTP 404 on other endpoints.');
+  write('');
+  write(' Fix for Jira Cloud (email + API token, Basic auth):');
+  $env_path = __DIR__ . '/.env';
+  write(' 1. Open: ' . JIRA_API_TOKEN_HELP_URL);
+  write(' 2. Create a new API token (or replace one that was revoked).');
+  write(' 3. In ' . $env_path . ': JIRA_USER = Atlassian account email; JIRA_PASS = that token;');
+  write('    TOKEN_BASED_AUTH=false (unless you intentionally use Bearer PAT).');
+  write(' 4. Save ' . $env_path . ' and run this script again.');
+  write(str_repeat('=', 80));
+  exit(1);
+}
+
+/**
+ * Adds short hints when Jira's message is misleading (auth vs issue access).
+ *
+ * @param \JiraRestApi\JiraException $e
+ *   Exception from the REST client.
+ *
+ * @return string
+ *   Message safe for one-line log output.
+ */
+function jira_format_api_exception(JiraException $e): string {
+  $base = $e->getMessage();
+  $code = $e->getCode();
+  $body = (string) ($e->getResponse() ?? '');
+
+  $hints = [];
+  if ($code === 401) {
+    $hints[] = 'Renew API token: ' . JIRA_API_TOKEN_HELP_URL;
+  }
+  elseif ($code === 404 && str_contains($body, 'Issue does not exist or you do not have permission')) {
+    $hints[] = 'This 404 often means invalid or revoked API credentials, not the issue key; preflight GET /myself would have caught it. Token help: ' . JIRA_API_TOKEN_HELP_URL;
+  }
+
+  return $base . (empty($hints) ? '' : ' | ' . implode(' ', $hints));
 }
 
 /**
