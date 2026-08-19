@@ -17,7 +17,7 @@
  *
  * @todo Automatically fetch time from Timing.app.
  * @todo Use console library to have some console help and parameters.
- *       (ie: debug, testing, source file)
+ *       (ie: debug, source file)
  */
 
 require __DIR__ . '/vendor/autoload.php';
@@ -28,6 +28,15 @@ use JiraRestApi\Issue\IssueService;
 use JiraRestApi\Issue\Worklog;
 use JiraRestApi\JiraException;
 
+$arguments = array_slice($argv, 1);
+$unsupported_arguments = array_diff($arguments, ['--dry-run']);
+if ($unsupported_arguments) {
+  fwrite(STDERR, 'Unsupported argument(s): ' . implode(', ', $unsupported_arguments) . PHP_EOL);
+  fwrite(STDERR, 'Usage: php jira-worklog-import.php [--dry-run]' . PHP_EOL);
+  exit(2);
+}
+$dry_run = in_array('--dry-run', $arguments, TRUE);
+
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
@@ -37,7 +46,6 @@ $issueService = new IssueService(new DotEnvConfiguration(__DIR__));
 const DATE_FORMAT = DateTime::ATOM;
 const DATE_TIMEZONE = 'America/Bogota';
 
-const DRY_RUN = FALSE;
 const DEBUGGING = FALSE;
 
 const INPUT_FILE = 'files/All Activities.json';
@@ -55,7 +63,7 @@ write(' Endpoint: ' . $_ENV['JIRA_HOST']);
 write(' Date: ' . date('c'));
 write(str_repeat('=', 80));
 
-jira_preflight_auth();
+jira_preflight_auth($dry_run);
 
 $file = file_get_contents(INPUT_FILE);
 
@@ -130,7 +138,7 @@ foreach ($json as $linenumber => $line) {
       ->setTimeSpent($row->hours);
 
     // Do not submit work logs to Jira.
-    if (DRY_RUN) {
+    if ($dry_run) {
       $row->status = "🕓";
       $row->status_message = "dry-run";
     }
@@ -158,8 +166,8 @@ foreach ($json as $linenumber => $line) {
  * Jira often returns HTTP 404 and "Issue does not exist..." when login actually
  * failed (e.g. revoked API token). Seraph sets x-seraph-loginreason on failure.
  */
-function jira_preflight_auth(): void {
-  if (DRY_RUN) {
+function jira_preflight_auth(bool $dry_run): void {
+  if ($dry_run) {
     return;
   }
   $cookieAuth = filter_var($_ENV['COOKIE_AUTH_ENABLED'] ?? FALSE, FILTER_VALIDATE_BOOLEAN);

@@ -28,10 +28,14 @@ JIRA_PASS=""
 
 * Adjust column numbers manually in script.
 
-* Do a test run, make sure TESTING = true in the script.
+* Do a dry run and review how every row is parsed. This does not contact Jira:
 ```
-php jira-worklog-import.php
+php jira-worklog-import.php --dry-run
 ```
 
 * Look at output to see if columns were parsed correctly.
-* Switch TESTING to false and do the final run.
+* Only when submission is explicitly authorized, omit `--dry-run` to perform
+  the final Jira import:
+```
+php jira-worklog-import.php
+```
