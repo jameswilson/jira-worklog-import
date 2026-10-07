@@ -1,0 +1,4 @@
+interface:
+  display_name: "Time Sheets"
+  short_description: "Prepare a Tempo-ready daily timesheet review"
+  default_prompt: "Use $time-sheets to prepare my pending days for review."
