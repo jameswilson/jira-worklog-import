@@ -1,4 +1,4 @@
 interface:
   display_name: "Time Sheets"
-  short_description: "Prepare a Tempo-ready daily timesheet review"
-  default_prompt: "Use $time-sheets to prepare my pending days for review."
+  short_description: "Create and learn from reviewed Timing worklogs"
+  default_prompt: "Use $time-sheets to create editable Timing worklogs for my specified dates, preserve the proposal, and learn from my reviewed All Activities.json export before any separately authorized Tempo import."

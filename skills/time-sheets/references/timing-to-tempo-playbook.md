@@ -5,6 +5,47 @@ or importing worklogs. Treat time records as financial records: preserve the
 source evidence, avoid false precision, and require explicit authorization for
 remote writes.
 
+This playbook is the single authoritative policy source for the workflow. The
+project `AGENTS.md` only routes applicable work to the `time-sheets` skill, and
+`SKILL.md` orchestrates this playbook. Do not duplicate the workflow policy in
+`AGENTS.md`; update this playbook when the workflow changes.
+
+## Contents
+
+- [Interpret the request and keep authorization bounded](#interpret-the-request-and-keep-authorization-bounded)
+- [Use the official Timing MCP before database access](#use-the-official-timing-mcp-before-database-access)
+- [Reconstruct work one day at a time](#reconstruct-work-one-day-at-a-time)
+- [Escalate ambiguous evidence carefully](#escalate-ambiguous-evidence-carefully)
+- [Assign projects, tickets, and increments](#assign-projects-tickets-and-increments)
+- [Learn from the reviewed Timing export](#learn-from-the-reviewed-timing-export)
+- [Respect the importer's actual behavior](#respect-the-importers-actual-behavior)
+- [Protect the Timing database](#protect-the-timing-database)
+
+## Interpret the request and keep authorization bounded
+
+- A direct request to **create, reconstruct, fill, make, or prepare worklogs**
+  for one or more specified dates authorizes creating editable,
+  manifest-tracked local Timing entries for exactly those dates. This standing
+  interpretation avoids requiring a second confirmation merely to make the
+  entries editable in Timing. Establish an exact date range and timezone before
+  writing; if the requested scope is not bounded, clarify it or remain
+  read-only.
+- A request only to **review, analyze, inspect, reconcile, report, find missing
+  time, or propose entries** remains read-only unless the user also asks to
+  create or change Timing entries. An explicit `review-only`, `proposal-only`,
+  or `do not change Timing` instruction always keeps the run read-only.
+- Local Timing authorization permits only the supported entries or narrowly
+  scoped entry corrections needed for the requested dates. It does not permit
+  deleting entries, changing Timing projects or rules, reassigning automatic
+  activities, altering timers, or performing unrelated cleanup without
+  separate explicit authorization.
+- Local Timing entry creation, reviewed-export feedback capture, Jira or Tempo
+  submission, and changes to the importer are separate authorization
+  boundaries. A Timing worklog request never authorizes remote submission.
+- Before every local write, create the proposal artifact and follow the Timing
+  MCP or protected-database procedure below. Re-read and verify the resulting
+  entries afterward.
+
 ## Use the official Timing MCP before database access
 
 - Prefer Timing's official local Mac MCP server, registered in Codex as
@@ -25,16 +66,15 @@ remote writes.
   statistics tools. Never file activities, change rules or projects, create or
   edit time entries, start or stop timers, or invoke any other Timing mutation
   during a read-only run.
-- A request to review, reconcile, or prepare a pending timesheet does not by
-  itself authorize Timing writes. When the current user request explicitly
-  authorizes creating or updating local Timing entries, prefer the supported
-  MCP time-entry operations over direct database editing. Before the first
-  change, record the exact proposed entries or edits in the local review
-  artifact, re-check duplicate and overlap risk, and follow the MCP server's
-  confirmation requirements. Re-read the affected entries afterward and verify
-  their project, title, notes, start, end, duration, and billing classification.
-  Never delete entries or change projects, rules, activity assignments, or
-  timers without separate explicit authorization.
+- A read-only request as defined above does not authorize Timing writes. A
+  bounded worklog-creation request does. For an authorized local write, prefer
+  the supported MCP time-entry operations over direct database editing. Before
+  the first change, record the exact proposed entries or edits in the local
+  review artifact, re-check duplicate and overlap risk, and follow the MCP
+  server's confirmation requirements. Re-read the affected entries afterward
+  and verify their project, title, notes, start, end, duration, and billing
+  classification. Never delete entries or change projects, rules, activity
+  assignments, or timers without separate explicit authorization.
 - If the selected MCP server is missing, unhealthy, unauthorized, or does not
   expose the detail needed for a defensible reconstruction, report that
   limitation and use the documented read-only SQLite fallback. The hosted
@@ -321,6 +361,146 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   comments, or worklogs. Never submit worklogs to Jira or time to Tempo without
   separate explicit authorization.
 
+## Learn from the reviewed Timing export
+
+The user's normal review cycle is the feedback mechanism for this workflow:
+create editable entries in Timing, let the user revise them in Timing, and then
+use the next qualifying Timing export as the reviewed answer key. Do not require
+a separate request to learn from that export.
+
+### Preserve the original proposal
+
+For every run that creates or materially changes local Timing entries, create a
+pending manifest before the first write and finalize it after the verified
+readback. Store runtime state below `worklogs/learning/`; it is evidence and
+state, not workflow policy. Use these locations unless a future implementation
+migrates them atomically and updates this playbook:
+
+- `worklogs/learning/pending/<run-id>.json` for the immutable original proposal;
+- `worklogs/learning/reviewed/<run-id>.json` for the matched reviewed outcome;
+- `worklogs/learning/preferences.json` for human-readable learned preferences;
+- `worklogs/learning/export-receipts.json` for processed export hashes and run
+  IDs.
+
+Give each run a stable unique ID. The pending manifest must include:
+
+- schema version, run ID, creation time, requested local dates and timezone;
+- the playbook or ruleset version, and repository commit when available;
+- the exact export path expected for review;
+- each proposed entry's project, primary Jira key, title, notes, start, end,
+  raw supported duration, normalized duration, and billing classification;
+- the source evidence intervals and concise rationale used for the proposal;
+- duplicate and overlap findings, confidence, and unresolved alternatives;
+- the verified Timing entry identifier after creation, plus a fingerprint of
+  the created values.
+
+The original proposal is the baseline and must not be rewritten to match later
+edits. Amend operational status separately. Keep raw evidence local and include
+only the minimum necessary provenance; never store prompt or message bodies
+merely for future model training.
+
+### Treat a qualifying export as review completion
+
+The expected review signal is `files/All Activities.json`, exported from
+Timing after the user finishes editing the applicable entries. Feedback capture
+is a local read-and-record operation and is authorized to run automatically
+when all of these checks pass:
+
+1. The file parses as a Timing JSON export with the expected fields.
+2. Its modification time and SHA-256 show that it is newer than the pending
+   proposal and has not already been processed for that run.
+3. Its local dates cover the pending run's requested dates. A broader export
+   may close several pending runs, but a partial export closes only the dates it
+   demonstrably covers. Do not infer coverage for an empty date from silence;
+   require explicit export-scope metadata from a future wrapper or retain that
+   date as pending. Interpret exported timestamps in the pending manifest's
+   recorded local timezone before evaluating date coverage.
+4. Current Timing entries for those dates can be read back, so a missing export
+   row can be distinguished from an export filter, failed save, or actual
+   deletion.
+5. The comparison is unambiguous enough to preserve a defensible audit trail.
+
+The export does not contain a stable Timing entry identifier. Use the captured
+Timing identifiers to read the current local entries, then correlate them with
+the export using local date, start and end, project, title, notes, billing
+status, and duration. Do not depend on a single mutable text field. Never infer
+that an entry was deleted merely because a filtered or incomplete export omitted
+it.
+
+For every proposed entry, record one reviewed outcome:
+
+- accepted unchanged;
+- title or notes edited;
+- Jira issue or Timing project reassigned;
+- start, end, duration, or billing status changed;
+- deleted;
+- split into multiple entries;
+- merged with another entry; or
+- replaced by or accompanied by a manually added entry.
+
+Record the original values, final values, export hash, match method, confidence,
+and any related final entries. If matching is ambiguous, keep the run pending,
+describe the ambiguity, and do not turn it into a learning example. Processing
+the same export hash and run ID again must be a no-op. Ignore unrelated or
+pre-existing export rows; treat a manually added row as feedback for a pending
+run only when its date, project or issue context, and surrounding Timing state
+defensibly connect it to that run.
+
+Treat a qualifying export as evidence that the user finished reviewing the
+local Timing data, not as proof that Jira or Tempo received it. Remote filing is
+established only by successful remote readback or a verified importer receipt.
+
+### Improve future proposals without self-modifying policy
+
+Every unambiguous reviewed outcome becomes a retrieval example immediately.
+On later runs, retrieve the most relevant examples by client or Timing project,
+Jira issue and issue type, repository or activity signature, entry type,
+billability, duration shape, and wording pattern. Use them to improve:
+
+- project and Jira issue ranking;
+- segmentation, consolidation, and duration suggestions within this playbook's
+  fixed continuity and rounding rules;
+- billability suggestions; and
+- title and note wording.
+
+Current-day evidence and explicit user direction always outrank historical
+examples. Historical frequency alone never proves that a Jira issue, project,
+duration, or billing classification applies today.
+
+Update `preferences.json` only with human-readable, evidence-linked preferences
+and confidence. A repeated correction may become a high-confidence preference
+after at least three independent reviewed runs with no material contradiction.
+One-off corrections remain examples. Learned preferences may not weaken the
+evidence threshold, continuity rule, rounding rules, privacy limits, duplicate
+checks, database safeguards, or authorization boundaries. Only an explicit
+user-approved playbook edit may change those policies.
+
+Use deterministic code for timestamps, duration arithmetic, rounding,
+fingerprints, coverage, duplicate detection, manifests, and receipts. Use an
+LLM for evidence synthesis, candidate Jira ranking, and concise descriptions.
+Do not automatically retrain or fine-tune a model. Retrieval over reviewed
+examples is the default learning mechanism; any later model training requires a
+separately reviewed dataset, evaluation plan, privacy review, and authorization.
+
+Track proposal quality over time using issue and project assignment accuracy,
+duration delta, false positives, missed entries, description edits, and review
+effort. Evaluate changes by replaying completed historical runs before adopting
+new ranking or preference behavior.
+
+### Integrate feedback capture with the import path
+
+The intended automation hook is the command that processes
+`files/All Activities.json`. Before a newer export is dry-run or imported, that
+command should reconcile every covered pending run, write the reviewed outcomes
+and export receipt, load the updated preferences, and then validate the export.
+This makes the existing review and export action sufficient; the user should not
+need a second prompt asking the agent to learn.
+
+Until that hook and its state files are implemented and tested, follow the same
+sequence manually and report that automatic ingestion is not yet installed. Do
+not claim that documentation alone created a file watcher, importer hook,
+receipt ledger, or trained model.
+
 ## Respect the importer's actual behavior
 
 The current script is a fixed-input Jira worklog importer, not a Timing reader
@@ -347,6 +527,12 @@ or a Tempo-specific client:
   that flag, it performs the preflight and calls `addWorklog()` for every valid
   row. Those Jira worklogs may be consumed or displayed by Tempo, but this code
   does not call a Tempo API.
+- The importer currently has no idempotency key or durable worklog receipt
+  ledger. Re-running the same export without `--dry-run` can create duplicate
+  worklogs. Automatic feedback capture does not make automatic submission safe.
+  Before any seamless submission workflow is enabled, add a guarded import
+  fingerprint and record each successful Jira worklog ID; reject or explicitly
+  review a duplicate fingerprint before writing remotely.
 
 Never execute the importer merely to validate an export. First review the JSON
 locally, then run `php jira-worklog-import.php --dry-run` and verify that every

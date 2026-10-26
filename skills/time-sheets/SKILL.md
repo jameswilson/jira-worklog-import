@@ -1,6 +1,6 @@
 ---
 name: time-sheets
-description: Reconcile Timing.app activity with Tempo worklogs and prepare a reviewable pending timesheet. Use when the user asks to find unfiled time, create draft Timing time entries, identify missing project allocation or scheduling ambiguities, or prepare a daily/weekly Tempo timesheet for final user review.
+description: Reconcile Timing.app activity with Tempo worklogs, create editable local Timing entries for bounded worklog requests, and learn from the user's reviewed Timing export. Use when the user asks to find unfiled time, create or reconstruct Timing entries, identify missing project allocation or scheduling ambiguities, prepare a daily or weekly Tempo timesheet, or process the reviewed All Activities.json export.
 ---
 
 # Time Sheets
@@ -20,8 +20,9 @@ Prepare worklogs for review; do not submit, approve, or alter existing Tempo wor
   the process working directory, derive a project root, or search arbitrary
   parent directories.
 - Treat the sibling reference as the authoritative source for matching,
-  rounding, Timing.app entry creation, importer behavior, authorization, and
-  database safety. Do not substitute guessed rules.
+  rounding, Timing.app entry creation, reviewed-export feedback, importer
+  behavior, authorization, and database safety. Do not duplicate its policy in
+  `AGENTS.md` or substitute guessed rules.
 - Prefer an already configured official Timing MCP server as the Timing data
   interface, following the server-selection and fallback rules in the
   playbook. For the local Mac server registered as `timing`, call `start_here`
@@ -33,9 +34,10 @@ Prepare worklogs for review; do not submit, approve, or alter existing Tempo wor
 1. Establish the requested date range and local timezone. State the dates being examined.
 2. Read Timing.app activity and existing Timing entries for that range. Use the
    official Timing MCP read tools when available, or the read-only fallback
-   specified in the project playbook. Keep Timing access read-only unless the
-   current user request explicitly authorizes creating or changing local Timing
-   entries.
+   specified in the project playbook. Apply the playbook's request-intent rules:
+   a bounded request to create, reconstruct, fill, or make worklogs authorizes
+   editable, manifest-tracked local Timing entries for those dates, while a
+   request only to review, analyze, reconcile, or report remains read-only.
 3. Read Tempo worklogs for the same range. Compare against Jira issues, dates, duration, and descriptions using the playbook's matching rules.
 4. Classify each coherent block as filed, missing, duplicate-risk, or uncertain.
    Do not infer an issue key merely from a nearby calendar event, browser tab,
@@ -53,11 +55,32 @@ Prepare worklogs for review; do not submit, approve, or alter existing Tempo wor
    that block independently under the playbook. A small overlap created solely
    by that independent rounding is permissible when the raw evidence intervals
    remain distinct and are not double-counted.
-5. When the current user request explicitly authorizes local Timing entry
-   creation, create only the permitted, well-supported entries through the
-   supported Timing MCP interface when available. Otherwise prepare proposals
-   only. Preserve the original evidence and record the rationale for each
-   created or proposed entry.
+5. When the request authorizes local Timing entry creation under the playbook,
+   create only the permitted, well-supported entries through the supported
+   Timing MCP interface when available. Otherwise prepare proposals only.
+   Preserve the original evidence and record the rationale for each created or
+   proposed entry. Local Timing authorization never authorizes Jira or Tempo
+   submission.
+
+## Close the review loop
+
+1. For every run that creates local Timing entries, preserve the original
+   proposal as a pending manifest using the schema and storage rules in the
+   playbook. Record the verified Timing entry identifiers after creation.
+2. Before processing a newer `files/All Activities.json` export, match it to
+   every pending run whose requested dates it covers. Treat that export as the
+   user's reviewed result only after the playbook's freshness, coverage, and
+   ambiguity checks pass.
+3. Capture accepted, changed, deleted, split, merged, reassigned, and manually
+   added entries as reviewed examples without requiring a separate learning
+   request. Do not mark an ambiguous comparison as learned.
+4. Load relevant reviewed examples automatically during later reconciliation.
+   Current evidence, explicit user direction, and the playbook's financial and
+   authorization safeguards always outrank historical preferences.
+5. Feedback capture is local and may happen automatically. Importing worklogs
+   into Jira or Tempo remains a separate explicit action and must follow the
+   playbook's dry-run and duplicate safeguards. Use durable receipt checks once
+   they are implemented; do not claim they exist before then.
 
 ## Flag before handoff
 
