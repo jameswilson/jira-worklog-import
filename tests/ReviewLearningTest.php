@@ -8,6 +8,7 @@ use JiraWorklogImport\ReviewLearning\AtomicJsonStore;
 use JiraWorklogImport\ReviewLearning\FixedClock;
 use JiraWorklogImport\ReviewLearning\JsonTimingEntryProvider;
 use JiraWorklogImport\ReviewLearning\ReviewLearningEngine;
+use JiraWorklogImport\ReviewLearning\ReviewLearningPreflight;
 use JiraWorklogImport\ReviewLearning\ReviewLearningRepository;
 use JiraWorklogImport\ReviewLearning\SqliteTimingEntryProvider;
 use JiraWorklogImport\ReviewLearning\TimingEntryProvider;
@@ -23,10 +24,13 @@ final class ReviewLearningTestSuite {
   public function run(): void {
     try {
       $this->testAllOutcomesAndNoOp();
+      $this->testTimingExportMayOmitOptionalFields();
+      $this->testPartialBillingColumnFailsClosed();
       $this->testFailClosedFixtures();
       $this->testCurrentReadbackAndManualAdditionProvenanceAreRequired();
       $this->testPreferencePromotionThreshold();
       $this->testConcurrentProcessing();
+      $this->testHumanReadableReport();
       $this->testStandaloneLearningDoesNotLoadJira();
       $this->testSqliteProviderIsReadOnly();
       $this->testImporterHookOrder();
@@ -37,6 +41,61 @@ final class ReviewLearningTestSuite {
         $this->removeTree($directory);
       }
     }
+  }
+
+  private function testTimingExportMayOmitOptionalFields(): void {
+    $context = $this->fixtureContext('all-outcomes');
+    $export = $this->readJson($context['export']);
+    foreach ($export as &$entry) {
+      unset($entry['billingStatus']);
+    }
+    unset($entry);
+    $export[] = [
+      'project' => 'Unrelated Project',
+      'duration' => '0:05:00',
+      'startDate' => '2026-10-07T14:00:00Z',
+      'endDate' => '2026-10-07T14:05:00Z',
+    ];
+    file_put_contents(
+      $context['export'],
+      json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
+    );
+    touch($context['export'], (new DateTimeImmutable('2026-10-27T00:00:00Z'))->getTimestamp());
+
+    $result = $this->engine($context)->process($context['export']);
+    $this->same('completed', $result['status'], 'Timing export without optional columns completes');
+    $this->same(1, $result['reviewed_count'], 'Timing export without optional columns is reviewed');
+
+    $reviewed = $this->readJson($context['root'] . '/worklogs/learning/reviewed/fixture-all-outcomes.json');
+    $billingOutcome = array_values(array_filter(
+      $reviewed['outcomes'],
+      static fn(array $outcome): bool => ($outcome['proposal_id'] ?? NULL) === 'billing-changed',
+    ));
+    $this->same('time_duration_or_billing_changed', $billingOutcome[0]['outcome'] ?? NULL, 'current Timing readback supplies omitted billing status');
+  }
+
+  private function testPartialBillingColumnFailsClosed(): void {
+    $context = $this->fixtureContext('all-outcomes');
+    $export = $this->readJson($context['export']);
+    unset($export[0]['billingStatus']);
+    file_put_contents(
+      $context['export'],
+      json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
+    );
+
+    $exception = NULL;
+    try {
+      $this->engine($context)->process($context['export']);
+    }
+    catch (RuntimeException $caught) {
+      $exception = $caught;
+    }
+    $this->true($exception instanceof RuntimeException, 'partial billing column fails closed');
+    $this->same(
+      'Export billingStatus must be present on every row or omitted from every row.',
+      $exception?->getMessage(),
+      'partial billing column reports the schema mismatch',
+    );
   }
 
   private function testAllOutcomesAndNoOp(): void {
@@ -256,6 +315,57 @@ final class ReviewLearningTestSuite {
     $this->same(3, $preferences[0]['source']['independent_timing_entry_count'], 'preference links three independent Timing entries');
   }
 
+  private function testHumanReadableReport(): void {
+    $report = ReviewLearningPreflight::report([
+      'status' => 'completed_with_pending_runs',
+      'runs' => [
+        [
+          'run_id' => '20261026T234720Z-2026-10-05-acceptance',
+          'status' => 'no_op_already_processed',
+        ],
+        [
+          'run_id' => '20261027T020658Z-contrib25-title-normalization',
+          'status' => 'pending_partial_export',
+          'missing_local_dates' => ['2023-02-01', '2026-10-23'],
+        ],
+        [
+          'run_id' => '20261027T141128Z-2026-10-16-gap-fill',
+          'status' => 'no_op_already_processed',
+        ],
+        [
+          'run_id' => '20261027T141128Z-2026-10-26-gap-fill',
+          'status' => 'pending_ambiguous',
+        ],
+        [
+          'run_id' => '20261027T141128Z-2026-10-27-gap-fill',
+          'status' => 'no_op_already_processed',
+        ],
+      ],
+    ]);
+
+    $this->same([
+      'Timing review learning',
+      'Nothing new was learned. 3 reviews were already up to date. 2 reviews need attention.',
+      '',
+      'Already learned — no action needed',
+      '  - Oct 5, 2026 — Time review',
+      '  - Oct 16, 2026 — Time review',
+      '  - Oct 27, 2026 — Time review',
+      '',
+      'Needs attention',
+      '  - CONTRIB-25 title normalization',
+      '    This export is missing 2 dates needed for this review, spanning Feb 1, 2023 to Oct 23, 2026. Export the complete date range from Timing, then run learning again.',
+      '  - Oct 26, 2026 — Time review',
+      '    The Timing entries no longer match the original draft clearly enough to learn from them. Nothing was changed; this review needs a manual comparison.',
+      '',
+      'No Jira or Tempo worklogs were created or changed.',
+    ], $report, 'learning report is grouped and human-readable');
+    $rendered = implode("\n", $report);
+    $this->false(str_contains($rendered, 'completed_with_pending_runs'), 'report hides machine summary status');
+    $this->false(str_contains($rendered, 'no_op_already_processed'), 'report hides machine run status');
+    $this->false(str_contains($rendered, '20261027T'), 'report hides timestamp run identifiers');
+  }
+
   private function testStandaloneLearningDoesNotLoadJira(): void {
     $context = $this->fixtureContext('all-outcomes');
     $script = dirname(__DIR__) . '/review-learning.php';
@@ -269,7 +379,7 @@ final class ReviewLearningTestSuite {
     ]);
     exec($command, $output, $exitCode);
     $this->same(0, $exitCode, 'standalone learning runs without Composer vendor or Jira client');
-    $this->true(str_contains(implode("\n", $output), 'no Jira or Tempo API was invoked'), 'standalone output states remote boundary');
+    $this->true(str_contains(implode("\n", $output), 'No Jira or Tempo worklogs were created or changed.'), 'standalone output states remote boundary');
     $source = file_get_contents($script);
     $this->false(str_contains((string) $source, 'vendor/autoload.php'), 'standalone CLI does not load remote client dependencies');
   }

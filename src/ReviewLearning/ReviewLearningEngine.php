@@ -82,7 +82,13 @@ final class ReviewLearningEngine {
           continue;
         }
 
-        $comparison = $this->compareCurrentTiming($readback, $export['entries'], $qualification['requested_local_dates'], $timezone);
+        $comparison = $this->compareCurrentTiming(
+          $readback,
+          $export['entries'],
+          $qualification['requested_local_dates'],
+          $timezone,
+          $export['includes_billing_status'],
+        );
         if ($comparison['status'] !== 'complete') {
           $results[] = [
             'run_id' => $runId,
@@ -92,7 +98,13 @@ final class ReviewLearningEngine {
           continue;
         }
 
-        $analysis = $this->analyze($pending, $comparison['current_entries'], $comparison['export_entries'], $timezone);
+        $analysis = $this->analyze(
+          $pending,
+          $comparison['current_entries'],
+          $comparison['export_entries'],
+          $comparison['includes_billing_status'],
+          $timezone,
+        );
         if ($analysis['status'] !== 'reviewed') {
           $results[] = [
             'run_id' => $runId,
@@ -219,12 +231,23 @@ final class ReviewLearningEngine {
       if (!is_array($entry)) {
         throw new RuntimeException('Export row ' . ($index + 1) . ' is not an object.');
       }
-      foreach (['project', 'title', 'duration', 'startDate', 'endDate', 'billingStatus'] as $field) {
+      foreach (['project', 'duration', 'startDate', 'endDate'] as $field) {
         if (!array_key_exists($field, $entry)) {
           throw new RuntimeException('Export row ' . ($index + 1) . ' is missing ' . $field . '.');
         }
       }
     }
+
+    $billingStatusRows = 0;
+    foreach ($entries as $entry) {
+      if (array_key_exists('billingStatus', $entry)) {
+        $billingStatusRows++;
+      }
+    }
+    if ($billingStatusRows !== 0 && $billingStatusRows !== count($entries)) {
+      throw new RuntimeException('Export billingStatus must be present on every row or omitted from every row.');
+    }
+    $includesBillingStatus = $entries !== [] && $billingStatusRows === count($entries);
 
     $mtime = filemtime($path);
     $sha = hash_file('sha256', $path);
@@ -240,6 +263,7 @@ final class ReviewLearningEngine {
       'raw_entries' => $entries,
       'entries' => $entries,
       'explicit_scope_dates' => $explicitScope,
+      'includes_billing_status' => $includesBillingStatus,
     ];
   }
 
@@ -322,7 +346,13 @@ final class ReviewLearningEngine {
    * @param string[] $requestedDates
    * @return array<string, mixed>
    */
-  private function compareCurrentTiming(TimingReadback $readback, array $exportEntries, array $requestedDates, DateTimeZone $timezone): array {
+  private function compareCurrentTiming(
+    TimingReadback $readback,
+    array $exportEntries,
+    array $requestedDates,
+    DateTimeZone $timezone,
+    bool $includesBillingStatus,
+  ): array {
     $missingReadbackDates = array_values(array_diff($requestedDates, $readback->coveredLocalDates));
     if ($missingReadbackDates !== []) {
       return [
@@ -365,8 +395,8 @@ final class ReviewLearningEngine {
       ];
     }
 
-    $currentMultiset = $this->fingerprintMultiset($current);
-    $exportMultiset = $this->fingerprintMultiset($export);
+    $currentMultiset = $this->fingerprintMultiset($current, $includesBillingStatus);
+    $exportMultiset = $this->fingerprintMultiset($export, $includesBillingStatus);
     if ($currentMultiset !== $exportMultiset) {
       return [
         'status' => 'filtered_or_incomplete_export',
@@ -379,6 +409,7 @@ final class ReviewLearningEngine {
       'current_entries' => $current,
       'export_entries' => $export,
       'current_multiset' => $currentMultiset,
+      'includes_billing_status' => $includesBillingStatus,
     ];
   }
 
@@ -388,7 +419,13 @@ final class ReviewLearningEngine {
    * @param array<int, array<string, mixed>> $exportEntries
    * @return array<string, mixed>
    */
-  private function analyze(array $pending, array $currentEntries, array $exportEntries, DateTimeZone $timezone): array {
+  private function analyze(
+    array $pending,
+    array $currentEntries,
+    array $exportEntries,
+    bool $includesBillingStatus,
+    DateTimeZone $timezone,
+  ): array {
     $proposals = $pending['proposed_entries'] ?? NULL;
     if (!is_array($proposals) || !array_is_list($proposals) || $proposals === []) {
       return $this->ambiguous('The pending manifest has no proposed entries.', []);
@@ -431,7 +468,7 @@ final class ReviewLearningEngine {
     foreach ($currentEntries as $entry) {
       $currentById[$entry['timing_entry_id']] = $entry;
     }
-    $exportFingerprintCounts = $this->fingerprintMultiset($exportEntries);
+    $exportFingerprintCounts = $this->fingerprintMultiset($exportEntries, $includesBillingStatus);
     $active = [];
     $missing = [];
     $ambiguities = [];
@@ -439,7 +476,7 @@ final class ReviewLearningEngine {
       $id = $baseline['timing_entry_id'];
       if (isset($currentById[$id])) {
         $final = $currentById[$id];
-        $fingerprint = EntryNormalizer::fingerprint($final);
+        $fingerprint = $this->exportFingerprint($final, $includesBillingStatus);
         if (($exportFingerprintCounts[$fingerprint] ?? 0) !== 1) {
           $ambiguities[] = 'Proposal ' . $proposalId . ' matches duplicate, indistinguishable export rows.';
           continue;
@@ -1154,14 +1191,32 @@ final class ReviewLearningEngine {
    * @param array<int, array<string, mixed>> $entries
    * @return array<string, int>
    */
-  private function fingerprintMultiset(array $entries): array {
+  private function fingerprintMultiset(array $entries, bool $includesBillingStatus = TRUE): array {
     $multiset = [];
     foreach ($entries as $entry) {
-      $fingerprint = EntryNormalizer::fingerprint($entry);
+      $fingerprint = $this->exportFingerprint($entry, $includesBillingStatus);
       $multiset[$fingerprint] = ($multiset[$fingerprint] ?? 0) + 1;
     }
     ksort($multiset, SORT_STRING);
     return $multiset;
+  }
+
+  /**
+   * Build a fingerprint from fields that the reviewed export actually carries.
+   *
+   * Timing omits empty title and notes values, which normalize to empty strings,
+   * and may omit the billing-status column from the JSON export entirely.
+   * Current Timing readback remains authoritative for a missing billing value.
+   *
+   * @param array<string, mixed> $entry
+   */
+  private function exportFingerprint(array $entry, bool $includesBillingStatus): string {
+    if ($includesBillingStatus) {
+      return EntryNormalizer::fingerprint($entry);
+    }
+
+    $entry['billing_status'] = 'unspecified';
+    return EntryNormalizer::fingerprint($entry);
   }
 
   /**
