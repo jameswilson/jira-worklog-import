@@ -570,6 +570,12 @@ or a Tempo-specific client:
 - It expects Timing-style `project`, `title`, `notes`, `duration`, and
   `startDate` fields. `duration` must be `HH:MM:SS`, and `startDate` must be an
   ISO 8601 timestamp.
+- A missing `project`, `title`, or `notes` field is reported as a row warning
+  when the Jira key and worklog comment can still be recovered from the other
+  routing fields. The warning names the fallback field used. A missing or
+  invalid `duration` or `startDate`, or failure to find a Jira key or comment in
+  any routing field, skips the row with a field-specific error instead of a PHP
+  runtime warning.
 - It chooses the first Jira key found in `title`, then `project`, then `notes`.
   A mixed-ticket row still creates only one worklog, on that primary issue.
 - Its worklog comment comes from `notes`, then `title`, then `project`. A leading

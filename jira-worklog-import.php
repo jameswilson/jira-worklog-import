@@ -21,6 +21,7 @@
  */
 
 use Dotenv\Dotenv;
+use JiraWorklogImport\Import\ImportRowParser;
 use JiraRestApi\Configuration\DotEnvConfiguration;
 use JiraRestApi\Issue\IssueService;
 use JiraRestApi\Issue\Worklog;
@@ -51,6 +52,7 @@ catch (Throwable $exception) {
 fwrite(STDERR, 'WARNING: Jira worklog filing remains non-idempotent; local learning receipts do not prevent remote duplicates.' . PHP_EOL);
 
 require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/src/Import/ImportRowParser.php';
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
@@ -85,59 +87,20 @@ $file = file_get_contents(INPUT_FILE);
 // Normalize line endings to Unix style
 $file = str_replace(["\r\n", "\r"], "\n", $file);
 
-$json = json_decode($file);
+$json = json_decode($file, FALSE, 512, JSON_THROW_ON_ERROR);
+
+if (!is_array($json)) {
+  throw new RuntimeException('Input must be a JSON array of worklog rows.');
+}
+
+$row_parser = new ImportRowParser(DATE_FORMAT, new DateTimeZone(DATE_TIMEZONE));
 
 foreach ($json as $linenumber => $line) {
 
   debug($line);
 
-  try {
-
-    if (empty($line->notes) && !empty($line->title)) {
-      $line->notes = $line->title;
-    }
-    elseif (empty($line->notes) && empty($line->title) && !empty($line->project)) {
-      $line->notes = $line->project;
-    }
-
-    $row = new stdClass();
-    $row->line = $linenumber + 1;
-    $row->status = '🟠';
-    $row->status_message = 'parsing';
-    $row->project = $line->project;
-    $row->issueKey = parse_key($line->title) ?? parse_key($line->project) ?? parse_key($line->notes) ?? '';
-    $row->hours = jira_hours_format($line->duration);
-    $row->datetime = $line->startDate;
-    $row->comment = parse_comment($line->notes) ?? parse_comment($line->title) ?? parse_comment($line->project) ?? '';
-
-    if (empty($row->issueKey)) {
-      $row->status = '🔴';
-      $row->issueKey = '⭕ ' . $line->title;
-    }
-
-    if (empty($row->comment)) {
-      $row->status = '🔴';
-      $row->comment = '⭕ A worklog comment is required.';
-    }
-    $row->comment = str_replace("\n", '\n', $row->comment);
-
-    // Make sure timezone is correct, it can have an impact
-    // on the day the time log is saved into.
-    $date = DateTime::createFromFormat(DATE_FORMAT, $row->datetime, new DateTimeZone(DATE_TIMEZONE));
-    if (!$date) {
-      debug(DateTime::getLastErrors());
-      $row->status = '🔴';
-      $row->datetime = '⭕ ' . $row->datetime . " fmt: '" . DATE_FORMAT . "'";
-    }
-    $row->datetime = $date->format('Y-m-d H:i:s');
-
-    if ($row->status == '🔴') {
-      throw new RuntimeException('skipped');
-    }
-  }
-  catch (Exception $e) {
-    $row->status = "🔴";
-    $row->status_message = $e->getMessage();
+  $row = $row_parser->parse($line, $linenumber + 1);
+  if ($row->status === '🔴') {
     debug($row);
     log_row($row);
     continue;
@@ -295,94 +258,6 @@ function jira_format_api_exception(JiraException $e): string {
   }
 
   return $base . (empty($hints) ? '' : ' | ' . implode(' ', $hints));
-}
-
-/**
- * Parse a Jira issue key, eg BSP-9, inside a random string.
- *
- * Supported formats:
- * - "random characters BSP-9 more random characters"
- *
- * @param string $string
- *   The string to search.
- *
- * @return string
- *   The issue key or NULL if not found.
- */
-function parse_key($string) {
-  $issueKeyRegex = '/.*?([A-Z][A-Z0-9]+-\d+).*?/';
-  if (!preg_match_all($issueKeyRegex, $string, $captureGroups)) {
-    return NULL;
-  }
-  return $captureGroups[1][0];
-}
-
-/**
- * Remove issue key prefix from a comment string.
- *
- * Sometimes the only place to put the issue key is at the beginning of a
- * comment or note.
- *
- * This function is used to strip off the issue key from the start of a
- * comment.  Supported formats include:
- *
- * BSP-9 - Timesheets
- * BSP-9 -   Timesheets
- * BSP-9: Timesheets
- * BSP-9 : Timesheets
- * BSP-9  :  Timesheets
- * BSP-9  Timesheets
- * BSP-9. Timesheets
- * https://regex101.com/r/Tk7Bc6/1
- *
- * @param string $string
- *   The string to search.
- *
- * @return string
- *   The comment or NULL if not found.
- */
-function parse_comment($string) {
-  $commentWithoutIssueKeyRegex = '/^([A-Z][A-Z0-9]+-\d+)(\s+)?(-|:|\.)?(\s+)?(.+)/s';
-  if (!preg_match_all($commentWithoutIssueKeyRegex, $string, $captureGroups)) {
-    return $string;
-  }
-  return $captureGroups[5][0];
-}
-
-/**
- * Convert time (hh:mm:ss) to decimal rounded up to nearest quarter-hour.
- *
- * @param string $time
- *   Hours in 'hh:mm:ss' format. Eg '1:27:33'.
- *
- * @return string
- *   Hours in Jira Decimal format. Eg '1.5h'.
- */
-function jira_hours_format($time) {
-  $hms = explode(":", $time);
-  $hours = $hms[0] + 0;
-  $fractional_hour = ($hms[1] / 60) + ($hms[2] / 3600);
-  $fractional_hour = nearest_quarter_hour($fractional_hour);
-  return (($hours + $fractional_hour) . 'h');
-}
-
-/**
- * Round a fraction up to the nearest quarter-hour.
- *
- * @param float $fractional_hour
- *   Minutes and seconds fraction.
- *
- * @return float
- *   Nearest quarter hour (.00, .25, .50, .75, or 1.00).
- */
-function nearest_quarter_hour($fractional_hour) {
-  // We're looking for fourths (.00, .25, .50, .75), so multiply the number by
-  // 4, round to nearest whole number as desired (ceil if up), then divide by 4.
-  $denominator = 4;
-  $x = $fractional_hour * $denominator;
-  $x = ceil($x);
-  $x = $x / $denominator;
-  return $x;
 }
 
 /**
