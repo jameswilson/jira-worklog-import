@@ -157,6 +157,12 @@ project `AGENTS.md` only routes applicable work to the `time-sheets` skill, and
    do not infer a client allocation. Neither exception authorizes a duplicate
    standup or managers-meeting entry. Follow-up that belongs to the meeting may
    extend the existing overarching entry rather than creating a duplicate.
+   For every client-project entry extracted from the standup timeframe, use the
+   Timing title exactly `<jira-id> - Internal Meetings`, replacing `<jira-id>`
+   with the supported client-project Jira issue key. Begin its notes/description
+   with `Standup: <description>`, replacing `<description>` with a concise
+   account of the supported client discussion or work. This is a specific
+   exception to the client-facing canonical Jira-summary title rule below.
 3. Group short fragments only when they belong to one coherent block under the
    continuity rule above. A gap of five minutes or longer, or any intervening
    conflicting task, manual entry, meeting boundary, or attributable alternate
@@ -324,13 +330,16 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   Apply the earlier evidence-based boundary procedure when normalizing an
   existing entry; do not rewrite an existing boundary solely to conform to this
   new-entry placement rule.
-- Give every importable row one primary Jira issue. For client-facing work, its
-  Timing title must be exactly `<JIRA-KEY> - <canonical Jira issue summary>`,
-  using the issue's original Jira summary/title. Treat the title as routing and
-  recognition metadata: do not append entry-specific work details, outcomes,
-  workstream labels, timestamps, or other commentary. Internal and contribution
-  rows follow their documented title conventions instead, including the
-  `CONTRIB-25` umbrella-ticket exception above.
+- Give every importable row one primary Jira issue. Except for client-project
+  entries extracted from the standup timeframe, client-facing work must use the
+  Timing title exactly `<JIRA-KEY> - <canonical Jira issue summary>`, using the
+  issue's original Jira summary/title. Standup-derived client entries instead
+  use the documented `<jira-id> - Internal Meetings` title and `Standup:` notes
+  prefix. Treat the title as routing and recognition metadata: do not append
+  entry-specific work details, outcomes, workstream labels, timestamps, or other
+  commentary. Internal and contribution rows follow their documented title
+  conventions instead, including the `CONTRIB-25` umbrella-ticket exception
+  above.
 - For a client-facing title, obtain the canonical summary through authenticated
   read-only Jira access or reuse a previously verified canonical summary for
   that exact issue. Do not synthesize, abbreviate, or guess it. If the canonical
