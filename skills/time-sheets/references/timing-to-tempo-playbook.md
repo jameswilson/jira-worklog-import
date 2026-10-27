@@ -363,6 +363,12 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   specific, concise, and suitable for that audience. For a mixed block, name
   every relevant ticket in the notes and identify which work belongs to the
   primary ticket.
+- Write the work description directly. Do not prefix notes with `Review draft:`
+  or append reconstruction metadata such as the number of supporting activity
+  intervals, the evidence-window length, or an instruction to adjust the entry
+  before filing. Keep that evidence and review status in the local review
+  artifact or pending manifest, where it remains available without becoming a
+  Jira or Tempo worklog comment.
 - Do not repeat a project-name prefix in notes when the Timing project and
   title already make that context clear; for example, avoid `ARB:
   ...` on an Arboretum entry whose project and Jira issue already identify the
