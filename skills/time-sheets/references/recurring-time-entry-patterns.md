@@ -46,7 +46,7 @@ not a recommendation to omit a useful outcome.
 | BSP-536 - Standup / Team Planning | `BSP-598 - managers meeting` | blank | 14 | 2026-03-11 to 2026-08-19 |
 | CHEM - ChemEdX | `CHEM-4 - Tech Lead` | `S8 Board Triage` | 7 | 2026-04-15 to 2026-04-16 |
 | IUL - Indiana University Libraries | `IULD8-1 - Client Checkin` | blank | 7 | 2026-02-24 to 2026-08-11 |
-| Contrib | `CONTRIB-25 - drupal contrib work` | blank | 3 | 2026-03-23 to 2026-04-21 |
+| Contrib | `CONTRIB-25 - Drupal contrib work` | blank | 3 | 2026-03-23 to 2026-04-21 |
 | IUL - Indiana University Libraries | `IULD8-11 - Lead dev` | `Board triage` | 2 | 2026-05-26 to 2026-06-02 |
 
 ## Verified recurring lookup
@@ -62,7 +62,7 @@ verified parent or epic-like container when Jira returned one.
 | Managers meeting | `BSP-598 - managers meeting`; “BSP-598 - Managers Meeting: Discussed operational priorities and team planning.” | BSP internal | 24; 2026-03-04 to 2026-08-19 | [BSP-598](https://bluespark.atlassian.net/browse/BSP-598); parent BSP-9 | High |
 | Internal research | `BSP-598 - research` or `BSP-598 - AI research`; “BSP-598 - AI Research: Researched the documented technical topic and summarized findings.” Keep the supported workstream and subject in the note. | BSP internal | 50; 2026-02-26 to 2026-08-05 | [BSP-598](https://bluespark.atlassian.net/browse/BSP-598); parent BSP-9 | High for the issue, medium for the sublabel |
 | Local environment maintenance | `BSP-598 - local environment`; “BSP-598 - Local Environment: Maintained local development tooling and environment configuration.” | BSP internal | 29; 2026-02-24 to 2026-08-06 | [BSP-598](https://bluespark.atlassian.net/browse/BSP-598); parent BSP-9 | High |
-| Drupal and open-source contribution | `CONTRIB-25 - drupal contrib work`, `ddev contrib work`, `Github contrib`, or the named module subpattern; “Investigated the issue and prepared the open-source contribution.” Combine variants only when activity identifies the contribution. | Contrib | 99; 2026-02-23 to 2026-08-11 | [CONTRIB-25](https://bluespark.atlassian.net/browse/CONTRIB-25), **Drupal Contrib Work** | High |
+| Drupal and open-source contribution | `CONTRIB-25 - Drupal contrib work`, `DDEV contrib work`, `GitHub contrib`, or the properly capitalized named-project subpattern; “Investigated the issue and prepared the open-source contribution.” Combine variants only when activity identifies the contribution. | Contrib | 99; 2026-02-23 to 2026-08-11 | [CONTRIB-25](https://bluespark.atlassian.net/browse/CONTRIB-25), **Drupal Contrib Work** | High |
 | ChemEdX technical lead | `CHEM-4 - Tech Lead`; “Triaged the sprint board, reviewed estimates, and updated ticket status.” | CHEM | 24; 2026-03-06 to 2026-07-30 | [CHEM-4](https://bluespark.atlassian.net/browse/CHEM-4), **DIV: Tech Planning & Consulting**; parent [CHEM-8](https://bluespark.atlassian.net/browse/CHEM-8) | High |
 | ChemEdX client meeting | `CHEM-1 - Client Meetings`; “Met with client stakeholders to review the sprint board and next steps.” | CHEM | 17; 2026-03-06 to 2026-08-14 | [CHEM-1](https://bluespark.atlassian.net/browse/CHEM-1), **DIV: Client Meetings**; parent CHEM-8 | Medium: four entries use a conflicting Timing project |
 | ChemEdX internal coordination | `CHEM-2 - Internal Meetings`; “Coordinated internal project status and delivery planning.” | CHEM | 5; 2026-02-25 to 2026-03-12 | [CHEM-2](https://bluespark.atlassian.net/browse/CHEM-2), **DIV: AM / PM / Team Meetings / Coord**; parent CHEM-8 | High |

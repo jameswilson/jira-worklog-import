@@ -272,32 +272,37 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   which case use `0s`. Never use ambiguous colon-only duration notation such as
   `1:23`. Preserve `HH:MM:SS` only where a machine-readable schema, command, or
   source value requires it, including Timing export and importer fields.
-- Map Drupal contribution work to Jira issue `CONTRIB-25` by default. Use the
-  same canonical Jira-summary title required for every importable row below;
-  do not put the contribution workstream or entry-specific activity in the
-  title. Put that information in the notes instead:
+- Map ordinary Drupal and open-source contribution work to Jira issue
+  `CONTRIB-25` by default. This broad internal ticket is an explicit exception
+  to the client-facing canonical-summary title rule below. Use the Timing
+  project `Contrib` and a stable title in the form
+  `CONTRIB-25 - <contrib project or workstream>`:
 
-  - For general Drupal contribution, including Drupal core patches, Drupal.org
-    dashboard and issue-queue review, and cross-pollinating reviews or comments
-    among Drupal.org issues, concisely name the concrete issues, modules,
-    patches, reviews, or outcomes. Established note patterns include
-    `Drupal core issues: ...` or `Drupal: ...; My dashboard`, without copying
-    timestamps.
-  - For DDEV work, including DDEV tooling, `ddev-drupal-contrib`, DDEV
-    documentation or sites, and DDEV issue, pull request, or workflow review,
-    identify the DDEV component and concrete activity or outcome.
-  - For the user's `svg_image_field` contribution project, including its issue
-    queue, maintenance, tests, releases, security/dependency work,
-    documentation, and related SVG sanitizer integration, identify the
-    concrete module work or outcome.
+  - Reuse an established title when the evidence identifies a recurring
+    project or workstream. Preserve proper project-name capitalization. Examples
+    include `CONTRIB-25 - Drupal contrib work`, `CONTRIB-25 - DDEV contrib
+    work`, `CONTRIB-25 - SVG Image Field contrib`, and `CONTRIB-25 - Label Help
+    contrib work`.
+  - For a newly identified named contrib project without an established title,
+    use `CONTRIB-25 - <Project Name> contrib work`. Do not create or require a
+    separate Jira issue merely to distinguish that contrib project.
+  - Use `CONTRIB-25 - Drupal contrib work` for general Drupal contribution or a
+    coherent mixed Drupal block for which no single named contrib project should
+    represent the title.
+  - Keep entry-specific issues, pull requests, patches, reviews, releases,
+    actions, and outcomes out of the title. Put the upstream issue or pull
+    request and a concise description of the work and outcome in the notes. If
+    no upstream issue exists, describe the concrete upstream abstract task
+    instead. Established note patterns include `Drupal core issues: ...` or
+    `Drupal: ...; My dashboard`, without copying timestamps.
 
-  Historical Timing entries are corroborating evidence for workstream
-  classification and note style, but old workstream-specific titles are not a
-  substitute for a verified canonical Jira issue summary. Current-day evidence
-  still controls the workstream and duration. When a block mixes workstreams,
-  split it only when the evidence supports a defensible split; otherwise use
-  the dominant supported workstream and describe the secondary activity in the
-  notes.
+  Current-day evidence controls the contrib project, workstream, notes, and
+  duration. When a block mixes projects or workstreams, split it only when the
+  evidence supports a defensible split; otherwise use the dominant supported
+  project or `Drupal contrib work` and describe the secondary activity in the
+  notes. Historical entries are corroborating evidence for established title
+  families and note style, not sufficient evidence by themselves for the
+  current block.
 - Apply an IULD8 override before the `CONTRIB-25` default when Drupal.org or
   repository activity is materially related to Indiana University, IU,
   `iu_paragraphs`, or Rivet. Inspect IULD8 activity in the same timeframe first
@@ -319,17 +324,19 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   Apply the earlier evidence-based boundary procedure when normalizing an
   existing entry; do not rewrite an existing boundary solely to conform to this
   new-entry placement rule.
-- Give every importable row one primary Jira issue. Its Timing title must be
-  exactly `<JIRA-KEY> - <canonical Jira issue summary>`, using the issue's
-  original Jira summary/title. Treat the title as routing and recognition
-  metadata: do not append entry-specific work details, outcomes, workstream
-  labels, timestamps, or other commentary.
-- Obtain the canonical summary through authenticated read-only Jira access or
-  reuse a previously verified canonical summary for that exact issue. Do not
-  synthesize, abbreviate, or guess it. If the canonical summary cannot be
-  verified, flag the entry for review rather than inventing a title. Apply this
-  format prospectively; do not rewrite existing Timing, Jira, or Tempo records
-  solely to normalize their titles.
+- Give every importable row one primary Jira issue. For client-facing work, its
+  Timing title must be exactly `<JIRA-KEY> - <canonical Jira issue summary>`,
+  using the issue's original Jira summary/title. Treat the title as routing and
+  recognition metadata: do not append entry-specific work details, outcomes,
+  workstream labels, timestamps, or other commentary. Internal and contribution
+  rows follow their documented title conventions instead, including the
+  `CONTRIB-25` umbrella-ticket exception above.
+- For a client-facing title, obtain the canonical summary through authenticated
+  read-only Jira access or reuse a previously verified canonical summary for
+  that exact issue. Do not synthesize, abbreviate, or guess it. If the canonical
+  summary cannot be verified, flag the entry for review rather than inventing a
+  title. Apply this format prospectively; do not rewrite existing Timing, Jira,
+  or Tempo records solely to normalize their titles.
 - File a client meeting on that client's designated meeting issue. The default
   convention is the project's `-1` issue (for example `IULD8-1`, `CHEM-1`, or
   `CCC-1`) when that issue is the project's established Client Meetings ticket.
@@ -348,13 +355,13 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   every relevant ticket in the notes and identify which work belongs to the
   primary ticket.
 - Do not repeat a project-name prefix in notes when the Timing project and
-  canonical title already make that context clear; for example, avoid `ARB:
+  title already make that context clear; for example, avoid `ARB:
   ...` on an Arboretum entry whose project and Jira issue already identify the
-  work. For a shared or cross-cutting ticket where the project and canonical
-  Jira summary are not enough context—especially `BSP-598`—begin the notes with
+  work. For a shared or cross-cutting ticket where the project and title are not
+  enough context—especially `BSP-598`—begin the notes with
   a concise workstream label such as `AI Research: ...`, followed by the fuller
-  activity description. Do not repeat the Jira key or canonical issue summary
-  merely to construct that label.
+  activity description. Do not repeat the Jira key or issue summary merely to
+  construct that label.
 - Omit the label `Private Browsing` from notes when creating or cleaning up
   Timing entries. It is an implementation detail, not useful work context, and
   can disclose more than the entry needs. Describe only the supported task,
@@ -494,7 +501,8 @@ billability, duration shape, and wording pattern. Use them to improve:
 - segmentation, consolidation, and duration suggestions within this playbook's
   fixed continuity and rounding rules;
 - billability suggestions; and
-- canonical Jira-summary accuracy and note wording.
+- client-facing canonical Jira-summary accuracy, internal and contribution
+  workstream-title accuracy, and note wording.
 
 Current-day evidence and explicit user direction always outrank historical
 examples. Historical frequency alone never proves that a Jira issue, project,
