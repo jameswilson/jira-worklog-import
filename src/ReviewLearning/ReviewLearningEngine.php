@@ -22,18 +22,15 @@ final class ReviewLearningEngine {
   }
 
   /**
-   * Process one reviewed Timing export against every pending manifest.
+   * Process one reviewed Timing export against every proposal manifest.
    *
    * @return array<string, mixed>
    */
   public function process(string $exportPath): array {
-    if ($this->store->pendingPaths() === []) {
-      return $this->summary('no_pending_manifests', [], NULL);
-    }
-
     return $this->store->withExclusiveLock(function () use ($exportPath): array {
-      $pendingPaths = $this->store->pendingPaths();
-      if ($pendingPaths === []) {
+      $this->store->migrateLegacyLayout();
+      $proposalPaths = $this->store->proposalPaths();
+      if ($proposalPaths === []) {
         return $this->summary('no_pending_manifests', [], NULL);
       }
 
@@ -46,13 +43,13 @@ final class ReviewLearningEngine {
       $receipts = is_array($receiptState['receipts'] ?? NULL) ? $receiptState['receipts'] : [];
       $results = [];
 
-      foreach ($pendingPaths as $pendingPath) {
-        $pendingSha = hash_file('sha256', $pendingPath);
-        if ($pendingSha === FALSE) {
-          throw new RuntimeException('Could not hash pending manifest: ' . $pendingPath);
+      foreach ($proposalPaths as $proposalPath) {
+        $proposalSha = hash_file('sha256', $proposalPath);
+        if ($proposalSha === FALSE) {
+          throw new RuntimeException('Could not hash proposal manifest: ' . $proposalPath);
         }
-        $pending = $this->store->readObject($pendingPath);
-        $runId = $this->requireString($pending, 'run_id', $pendingPath);
+        $proposal = $this->store->readObject($proposalPath);
+        $runId = $this->requireString($proposal, 'run_id', $proposalPath);
         $receiptKey = $this->receiptKey($runId, $export['sha256']);
         if ($this->hasReceipt($receipts, $runId, $export['sha256'])) {
           $results[] = [
@@ -63,7 +60,7 @@ final class ReviewLearningEngine {
           continue;
         }
 
-        $qualification = $this->qualify($pending, $pendingPath, $export);
+        $qualification = $this->qualify($proposal, $proposalPath, $export);
         if ($qualification['status'] !== 'qualified') {
           $results[] = ['run_id' => $runId] + $qualification;
           continue;
@@ -99,7 +96,7 @@ final class ReviewLearningEngine {
         }
 
         $analysis = $this->analyze(
-          $pending,
+          $proposal,
           $comparison['current_entries'],
           $comparison['export_entries'],
           $comparison['includes_billing_status'],
@@ -115,16 +112,16 @@ final class ReviewLearningEngine {
           continue;
         }
 
-        if (hash_file('sha256', $pendingPath) !== $pendingSha) {
-          throw new RuntimeException('Pending manifest changed during review and was not processed: ' . $pendingPath);
+        if (hash_file('sha256', $proposalPath) !== $proposalSha) {
+          throw new RuntimeException('Proposal manifest changed during review and was not processed: ' . $proposalPath);
         }
 
-        $reviewedPath = $this->store->reviewedDirectory() . '/' . $runId . '.json';
+        $reviewedPath = $this->store->reviewsDirectory() . '/' . $runId . '.json';
         $priorReviewed = $this->store->readObject($reviewedPath, []);
         $reviewed = $this->buildReviewedManifest(
-          $pending,
-          $pendingPath,
-          $pendingSha,
+          $proposal,
+          $proposalPath,
+          $proposalSha,
           $export,
           $readback,
           $comparison,
@@ -293,13 +290,13 @@ final class ReviewLearningEngine {
       if (!$this->samePath($expectedPath, $export['path'])) {
         return [
           'status' => 'pending_wrong_export_path',
-          'reason' => 'The export path does not match the pending manifest.',
+          'reason' => 'The export path does not match the proposal manifest.',
         ];
       }
       if ($export['mtime_epoch'] <= $createdAt->getTimestamp()) {
         return [
           'status' => 'pending_stale_export',
-          'reason' => 'The export modification time is not newer than the pending proposal.',
+          'reason' => 'The export modification time is not newer than the proposal manifest.',
         ];
       }
 
@@ -428,7 +425,7 @@ final class ReviewLearningEngine {
   ): array {
     $proposals = $pending['proposed_entries'] ?? NULL;
     if (!is_array($proposals) || !array_is_list($proposals) || $proposals === []) {
-      return $this->ambiguous('The pending manifest has no proposed entries.', []);
+      return $this->ambiguous('The proposal manifest has no proposed entries.', []);
     }
 
     $baselines = [];
@@ -514,7 +511,7 @@ final class ReviewLearningEngine {
     if (!$hasPreexistingSnapshot) {
       foreach ($proposalCandidates as $proposalId => $candidates) {
         if ($candidates !== []) {
-          $ambiguities[] = 'Proposal ' . $proposalId . ' has related rows, but the pending manifest did not preserve the pre-review Timing identifier set.';
+          $ambiguities[] = 'Proposal ' . $proposalId . ' has related rows, but the proposal manifest did not preserve the pre-review Timing identifier set.';
         }
       }
       if ($ambiguities !== []) {
@@ -841,7 +838,7 @@ final class ReviewLearningEngine {
     ]);
     $preferences = is_array($state['preferences'] ?? NULL) ? $state['preferences'] : [];
     $groups = [];
-    $reviewedPaths = glob($this->store->reviewedDirectory() . '/*.json') ?: [];
+    $reviewedPaths = glob($this->store->reviewsDirectory() . '/*.json') ?: [];
     sort($reviewedPaths, SORT_STRING);
     foreach ($reviewedPaths as $reviewedPath) {
       $reviewed = $this->store->readObject($reviewedPath);

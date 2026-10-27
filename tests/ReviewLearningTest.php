@@ -28,6 +28,7 @@ final class ReviewLearningTestSuite {
       $this->testPartialBillingColumnFailsClosed();
       $this->testFailClosedFixtures();
       $this->testCurrentReadbackAndManualAdditionProvenanceAreRequired();
+      $this->testLegacyLayoutMigration();
       $this->testPreferencePromotionThreshold();
       $this->testConcurrentProcessing();
       $this->testHumanReadableReport();
@@ -66,7 +67,7 @@ final class ReviewLearningTestSuite {
     $this->same('completed', $result['status'], 'Timing export without optional columns completes');
     $this->same(1, $result['reviewed_count'], 'Timing export without optional columns is reviewed');
 
-    $reviewed = $this->readJson($context['root'] . '/worklogs/learning/reviewed/fixture-all-outcomes.json');
+    $reviewed = $this->readJson($context['root'] . '/worklogs/learning/reviews/fixture-all-outcomes.json');
     $billingOutcome = array_values(array_filter(
       $reviewed['outcomes'],
       static fn(array $outcome): bool => ($outcome['proposal_id'] ?? NULL) === 'billing-changed',
@@ -100,15 +101,15 @@ final class ReviewLearningTestSuite {
 
   private function testAllOutcomesAndNoOp(): void {
     $context = $this->fixtureContext('all-outcomes');
-    $pendingHash = hash_file('sha256', $context['pending']);
+    $proposalHash = hash_file('sha256', $context['proposal']);
     $engine = $this->engine($context);
 
     $result = $engine->process($context['export']);
     $this->same('completed', $result['status'], 'all-outcomes run completes');
     $this->same(1, $result['reviewed_count'], 'one run reviewed');
-    $this->same($pendingHash, hash_file('sha256', $context['pending']), 'pending manifest is immutable');
+    $this->same($proposalHash, hash_file('sha256', $context['proposal']), 'proposal manifest is immutable');
 
-    $reviewedPath = $context['root'] . '/worklogs/learning/reviewed/fixture-all-outcomes.json';
+    $reviewedPath = $context['root'] . '/worklogs/learning/reviews/fixture-all-outcomes.json';
     $reviewed = $this->readJson($reviewedPath);
     $byProposal = [];
     foreach ($reviewed['outcomes'] as $outcome) {
@@ -133,7 +134,7 @@ final class ReviewLearningTestSuite {
     }
     $this->same('replacement', $byProposal['replaced']['mode'], 'replacement is distinguished');
     $this->same('accompanied_by_manual_addition', $byProposal['manual-addition']['mode'], 'manual addition is distinguished');
-    $this->true(str_starts_with($byProposal['manual-addition']['related_final_entries'][0]['start'], '2026-10-05T20:00:00-05:00'), 'UTC-next-day rows use the pending timezone for coverage');
+    $this->true(str_starts_with($byProposal['manual-addition']['related_final_entries'][0]['start'], '2026-10-05T20:00:00-05:00'), 'UTC-next-day rows use the proposal timezone for coverage');
     $this->same($reviewed['review_export']['sha256'], $byProposal['accepted']['export_sha256'], 'each outcome records the export hash');
     $this->same('none', $reviewed['remote_writes']['jira'], 'review records no Jira writes');
     $this->same('none', $reviewed['remote_writes']['tempo'], 'review records no Tempo writes');
@@ -182,12 +183,12 @@ final class ReviewLearningTestSuite {
     $this->false(is_file($unavailable['root'] . '/worklogs/learning/export-receipts.json'), 'unavailable readback writes no receipt');
 
     $unknownBaseline = $this->fixtureContext('all-outcomes');
-    $pending = $this->readJson($unknownBaseline['pending']);
-    unset($pending['source_state']);
-    file_put_contents($unknownBaseline['pending'], json_encode($pending, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
+    $proposal = $this->readJson($unknownBaseline['proposal']);
+    unset($proposal['source_state']);
+    file_put_contents($unknownBaseline['proposal'], json_encode($proposal, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
     $result = $this->engine($unknownBaseline)->process($unknownBaseline['export']);
     $this->same('pending_ambiguous', $result['runs'][0]['status'], 'manual additions without a pre-review ID set remain pending');
-    $this->false(is_file($unknownBaseline['root'] . '/worklogs/learning/reviewed/fixture-all-outcomes.json'), 'ambiguous manual additions create no reviewed example');
+    $this->false(is_file($unknownBaseline['root'] . '/worklogs/learning/reviews/fixture-all-outcomes.json'), 'ambiguous manual additions create no reviewed example');
   }
 
   private function testFailClosedFixtures(): void {
@@ -199,15 +200,69 @@ final class ReviewLearningTestSuite {
     ];
     foreach ($expected as $fixture => $status) {
       $context = $this->fixtureContext($fixture);
-      $pendingHash = hash_file('sha256', $context['pending']);
+      $proposalHash = hash_file('sha256', $context['proposal']);
       $result = $this->engine($context)->process($context['export']);
       $this->same($status, $result['runs'][0]['status'] ?? NULL, $fixture . ' export remains pending');
       $this->same(0, $result['reviewed_count'], $fixture . ' creates no learned review');
-      $this->same($pendingHash, hash_file('sha256', $context['pending']), $fixture . ' preserves pending manifest');
-      $this->same([], glob($context['root'] . '/worklogs/learning/reviewed/*.json') ?: [], $fixture . ' writes no reviewed example');
+      $this->same($proposalHash, hash_file('sha256', $context['proposal']), $fixture . ' preserves proposal manifest');
+      $this->same([], glob($context['root'] . '/worklogs/learning/reviews/*.json') ?: [], $fixture . ' writes no reviewed example');
       $this->false(is_file($context['root'] . '/worklogs/learning/export-receipts.json'), $fixture . ' writes no receipt');
       $this->false(is_file($context['root'] . '/worklogs/learning/preferences.json'), $fixture . ' writes no preferences');
     }
+  }
+
+  private function testLegacyLayoutMigration(): void {
+    $root = $this->temporaryDirectory() . '/worklogs/learning';
+    mkdir($root . '/pending', 0700, TRUE);
+    mkdir($root . '/reviewed', 0700, TRUE);
+    $legacyProposal = $root . '/pending/legacy-run.json';
+    $legacyReview = $root . '/reviewed/legacy-run.json';
+    file_put_contents($legacyProposal, "{\n  \"run_id\": \"legacy-run\"\n}\n");
+    file_put_contents($legacyReview, json_encode([
+      'run_id' => 'legacy-run',
+      'pending_manifest' => ['path' => $legacyProposal],
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
+    file_put_contents($root . '/export-receipts.json', json_encode([
+      'schema_version' => 1,
+      'receipts' => [[
+        'run_id' => 'legacy-run',
+        'reviewed_manifest_path' => $legacyReview,
+      ]],
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
+    $proposalHash = hash_file('sha256', $legacyProposal);
+
+    $store = new AtomicJsonStore($root);
+    $migrated = $store->withExclusiveLock(fn(): bool => $store->migrateLegacyLayout());
+    $proposal = $root . '/proposals/legacy-run.json';
+    $review = $root . '/reviews/legacy-run.json';
+    $this->true($migrated, 'legacy learning folders are migrated');
+    $this->false(is_dir($root . '/pending'), 'legacy pending directory is removed');
+    $this->false(is_dir($root . '/reviewed'), 'legacy reviewed directory is removed');
+    $this->same($proposalHash, hash_file('sha256', $proposal), 'migration preserves the immutable proposal');
+    $this->same($proposal, $this->readJson($review)['pending_manifest']['path'], 'review metadata points to the proposal directory');
+    $this->same(
+      $review,
+      $this->readJson($root . '/export-receipts.json')['receipts'][0]['reviewed_manifest_path'],
+      'receipt metadata points to the reviews directory',
+    );
+    $this->false(
+      $store->withExclusiveLock(fn(): bool => $store->migrateLegacyLayout()),
+      'current learning layout migration is a no-op',
+    );
+
+    $collisionRoot = $this->temporaryDirectory() . '/worklogs/learning';
+    mkdir($collisionRoot . '/pending', 0700, TRUE);
+    mkdir($collisionRoot . '/proposals', 0700, TRUE);
+    $collisionStore = new AtomicJsonStore($collisionRoot);
+    $exception = NULL;
+    try {
+      $collisionStore->withExclusiveLock(fn(): bool => $collisionStore->migrateLegacyLayout());
+    }
+    catch (RuntimeException $caught) {
+      $exception = $caught;
+    }
+    $this->true($exception instanceof RuntimeException, 'conflicting legacy and current directories fail safely');
+    $this->true(is_dir($collisionRoot . '/pending'), 'failed migration preserves the legacy directory');
   }
 
   private function testConcurrentProcessing(): void {
@@ -240,13 +295,13 @@ final class ReviewLearningTestSuite {
     }
     $receipts = $this->readJson($context['root'] . '/worklogs/learning/export-receipts.json');
     $this->same(1, count($receipts['receipts']), 'concurrent workers write one pair receipt');
-    $this->true(is_file($context['root'] . '/worklogs/learning/reviewed/fixture-all-outcomes.json'), 'concurrent review file is valid and present');
+    $this->true(is_file($context['root'] . '/worklogs/learning/reviews/fixture-all-outcomes.json'), 'concurrent review file is valid and present');
   }
 
   private function testPreferencePromotionThreshold(): void {
     $root = $this->temporaryDirectory();
     mkdir($root . '/files', 0700, TRUE);
-    mkdir($root . '/worklogs/learning/pending', 0700, TRUE);
+    mkdir($root . '/worklogs/learning/proposals', 0700, TRUE);
     $export = [];
     $snapshot = [];
     for ($index = 1; $index <= 3; $index++) {
@@ -256,7 +311,7 @@ final class ReviewLearningTestSuite {
       $startUtc = (new DateTimeImmutable($startLocal))->setTimezone(new DateTimeZone('UTC'))->format('c');
       $endUtc = (new DateTimeImmutable($endLocal))->setTimezone(new DateTimeZone('UTC'))->format('c');
       $entryId = (string) (800 + $index);
-      $pending = [
+      $proposal = [
         'schema_version' => 1,
         'run_id' => 'preference-run-' . $index,
         'created_at' => '2026-01-01T00:00:00Z',
@@ -278,8 +333,8 @@ final class ReviewLearningTestSuite {
         ]],
       ];
       file_put_contents(
-        $root . '/worklogs/learning/pending/preference-run-' . $index . '.json',
-        json_encode($pending, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
+        $root . '/worklogs/learning/proposals/preference-run-' . $index . '.json',
+        json_encode($proposal, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
       );
       $row = [
         'project' => 'Repeated Project',
@@ -417,21 +472,21 @@ final class ReviewLearningTestSuite {
   }
 
   /**
-   * @return array{root: string, pending: string, export: string, snapshot: string}
+   * @return array{root: string, proposal: string, export: string, snapshot: string}
    */
   private function fixtureContext(string $name): array {
     $fixture = __DIR__ . '/fixtures/review-learning/' . $name;
     $root = $this->temporaryDirectory();
     mkdir($root . '/files', 0700, TRUE);
-    mkdir($root . '/worklogs/learning/pending', 0700, TRUE);
-    $pending = $root . '/worklogs/learning/pending/' . $name . '.json';
+    mkdir($root . '/worklogs/learning/proposals', 0700, TRUE);
+    $proposal = $root . '/worklogs/learning/proposals/' . $name . '.json';
     $export = $root . '/files/All Activities.json';
     $snapshot = $root . '/timing-readback.json';
-    copy($fixture . '/pending.json', $pending);
+    copy($fixture . '/proposal.json', $proposal);
     copy($fixture . '/export.json', $export);
     copy($fixture . '/timing-readback.json', $snapshot);
     touch($export, (new DateTimeImmutable('2026-10-27T00:00:00Z'))->getTimestamp());
-    return compact('root', 'pending', 'export', 'snapshot');
+    return compact('root', 'proposal', 'export', 'snapshot');
   }
 
   /**

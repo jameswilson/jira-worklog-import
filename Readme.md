@@ -48,8 +48,10 @@ php jira-worklog-import.php --dry-run
 ```
 
 The importer first runs a local review-learning preflight against every covered
-manifest in `worklogs/learning/pending/`. It reads current Timing entries,
+manifest in `worklogs/learning/proposals/`. It reads current Timing entries,
 records only unambiguous reviewed outcomes, and never contacts Jira or Tempo.
+Completed outcomes are stored under `worklogs/learning/reviews/`; proposal
+manifests remain unchanged as the before-state evidence for each run.
 Run that component by itself with:
 
 ```

@@ -367,7 +367,7 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   or append reconstruction metadata such as the number of supporting activity
   intervals, the evidence-window length, or an instruction to adjust the entry
   before filing. Keep that evidence and review status in the local review
-  artifact or pending manifest, where it remains available without becoming a
+  artifact or proposal manifest, where it remains available without becoming a
   Jira or Tempo worklog comment.
 - Do not repeat a project-name prefix in notes when the Timing project and
   title already make that context clear; for example, avoid `ARB:
@@ -426,18 +426,18 @@ a separate request to learn from that export.
 ### Preserve the original proposal
 
 For every run that creates or materially changes local Timing entries, create a
-pending manifest before the first write and finalize it after the verified
+proposal manifest before the first write and finalize it after the verified
 readback. Store runtime state below `worklogs/learning/`; it is evidence and
 state, not workflow policy. Use these locations unless a future implementation
 migrates them atomically and updates this playbook:
 
-- `worklogs/learning/pending/<run-id>.json` for the immutable original proposal;
-- `worklogs/learning/reviewed/<run-id>.json` for the matched reviewed outcome;
+- `worklogs/learning/proposals/<run-id>.json` for the immutable original proposal;
+- `worklogs/learning/reviews/<run-id>.json` for the matched reviewed outcome;
 - `worklogs/learning/preferences.json` for human-readable learned preferences;
 - `worklogs/learning/export-receipts.json` for processed export hashes and run
   IDs.
 
-Give each run a stable unique ID. The pending manifest must include:
+Give each run a stable unique ID. The proposal manifest must include:
 
 - schema version, run ID, creation time, requested local dates and timezone;
 - the playbook or ruleset version, and repository commit when available;
@@ -462,14 +462,14 @@ is a local read-and-record operation and is authorized to run automatically
 when all of these checks pass:
 
 1. The file parses as a Timing JSON export with the expected fields.
-2. Its modification time and SHA-256 show that it is newer than the pending
-   proposal and has not already been processed for that run.
-3. Its local dates cover the pending run's requested dates. A broader export
-   may close several pending runs, but a partial export closes only the dates it
-   demonstrably covers. Do not infer coverage for an empty date from silence;
-   require explicit export-scope metadata from a future wrapper or retain that
-   date as pending. Interpret exported timestamps in the pending manifest's
-   recorded local timezone before evaluating date coverage.
+2. Its modification time and SHA-256 show that it is newer than the proposal
+   manifest and has not already been processed for that run.
+3. Its local dates cover the proposal's requested dates. A broader export
+   may close several unresolved proposals, but a partial export closes only the
+   dates it demonstrably covers. Do not infer coverage for an empty date from
+   silence; require explicit export-scope metadata from a future wrapper or
+   retain that date as unresolved. Interpret exported timestamps in the
+   proposal manifest's recorded local timezone before evaluating date coverage.
 4. Current Timing entries for those dates can be read back, so a missing export
    row can be distinguished from an export filter, failed save, or actual
    deletion.
@@ -494,12 +494,12 @@ For every proposed entry, record one reviewed outcome:
 - replaced by or accompanied by a manually added entry.
 
 Record the original values, final values, export hash, match method, confidence,
-and any related final entries. If matching is ambiguous, keep the run pending,
-describe the ambiguity, and do not turn it into a learning example. Processing
-the same export hash and run ID again must be a no-op. Ignore unrelated or
-pre-existing export rows; treat a manually added row as feedback for a pending
-run only when its date, project or issue context, and surrounding Timing state
-defensibly connect it to that run.
+and any related final entries. If matching is ambiguous, leave the proposal
+unresolved, describe the ambiguity, and do not turn it into a learning example.
+Processing the same export hash and run ID again must be a no-op. Ignore
+unrelated or pre-existing export rows; treat a manually added row as feedback
+for an unresolved proposal only when its date, project or issue context, and
+surrounding Timing state defensibly connect it to that run.
 
 Treat a qualifying export as evidence that the user finished reviewing the
 local Timing data, not as proof that Jira or Tempo received it. Remote filing is
@@ -550,10 +550,10 @@ new ranking or preference behavior.
 
 The intended automation hook is the command that processes
 `files/All Activities.json`. Before a newer export is dry-run or imported, that
-command should reconcile every covered pending run, write the reviewed outcomes
-and export receipt, load the updated preferences, and then validate the export.
-This makes the existing review and export action sufficient; the user should not
-need a second prompt asking the agent to learn.
+command should reconcile every covered unresolved proposal, write the reviewed
+outcomes and export receipt, load the updated preferences, and then validate the
+export. This makes the existing review and export action sufficient; the user
+should not need a second prompt asking the agent to learn.
 
 Until that hook and its state files are implemented and tested, follow the same
 sequence manually and report that automatic ingestion is not yet installed. Do

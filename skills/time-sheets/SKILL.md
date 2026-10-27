@@ -67,12 +67,13 @@ Prepare worklogs for review; do not submit, approve, or alter existing Tempo wor
 ## Close the review loop
 
 1. For every run that creates local Timing entries, preserve the original
-   proposal as a pending manifest using the schema and storage rules in the
-   playbook. Record the verified Timing entry identifiers after creation.
+   proposal as an immutable proposal manifest using the schema and storage
+   rules in the playbook. Record the verified Timing entry identifiers after
+   creation.
 2. Before processing a newer `files/All Activities.json` export, match it to
-   every pending run whose requested dates it covers. Treat that export as the
-   user's reviewed result only after the playbook's freshness, coverage, and
-   ambiguity checks pass.
+   every unresolved proposal whose requested dates it covers. Treat that export
+   as the user's reviewed result only after the playbook's freshness, coverage,
+   and ambiguity checks pass.
 3. Capture accepted, changed, deleted, split, merged, reassigned, and manually
    added entries as reviewed examples without requiring a separate learning
    request. Do not mark an ambiguous comparison as learned.

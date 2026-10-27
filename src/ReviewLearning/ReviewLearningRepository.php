@@ -21,7 +21,7 @@ final class ReviewLearningRepository {
    */
   public function retrieve(array $criteria = [], int $limit = 10): array {
     $examples = [];
-    $paths = glob($this->store->reviewedDirectory() . '/*.json') ?: [];
+    $paths = glob($this->store->reviewsDirectory() . '/*.json') ?: [];
     sort($paths, SORT_STRING);
     foreach ($paths as $path) {
       $reviewed = $this->store->readObject($path);
