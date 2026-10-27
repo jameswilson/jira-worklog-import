@@ -1,0 +1,22 @@
+#!/bin/sh
+
+script_path=$0
+while [ -L "$script_path" ]; do
+  script_directory=$(CDPATH= cd -- "$(dirname -- "$script_path")" && pwd) || exit 1
+  link_target=$(readlink "$script_path") || exit 1
+  case "$link_target" in
+    /*) script_path=$link_target ;;
+    *) script_path=$script_directory/$link_target ;;
+  esac
+done
+
+script_directory=$(CDPATH= cd -- "$(dirname -- "$script_path")" && pwd) || exit 1
+project_directory=$(CDPATH= cd -- "$script_directory/.." && pwd) || exit 1
+cd "$project_directory" || exit 1
+
+if [ "${1-}" = "--learn-only" ]; then
+  shift
+  exec php review-learning.php "$@"
+fi
+
+exec php jira-worklog-import.php "$@"

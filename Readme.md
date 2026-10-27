@@ -20,6 +20,20 @@ JIRA_PASS=""
 
 ### Usage:
 
+The version-controlled `bin/logtime` launcher runs the commands from the
+repository root, regardless of the caller's working directory. Install it on
+your `PATH` with a symlink or a minimal delegating shim, then use:
+
+```
+logtime --dry-run
+logtime --learn-only
+```
+
+`--learn-only` runs `php review-learning.php` without loading or invoking the
+Jira importer. Any arguments after `--learn-only` are forwarded to that
+learning command. All other arguments are forwarded unchanged to
+`php jira-worklog-import.php`.
+
 * Make sure the json file contains the following fields:
   * Date
   * Jira issue key
