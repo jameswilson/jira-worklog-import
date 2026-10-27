@@ -266,6 +266,12 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   Preserve separate coherent blocks at their observed starts and round each
   supported block upward to the next 5-minute increment unless a more specific
   rule applies.
+- In every user-facing prompt response, review handoff, summary, or table,
+  display elapsed durations with explicit unit suffixes, such as `1h 23m 45s`,
+  `23m 45s`, or `45s`. Omit zero-valued units unless the duration is zero, in
+  which case use `0s`. Never use ambiguous colon-only duration notation such as
+  `1:23`. Preserve `HH:MM:SS` only where a machine-readable schema, command, or
+  source value requires it, including Timing export and importer fields.
 - Map Drupal contribution work to Jira issue `CONTRIB-25` by default. Use the
   exact canonical title that matches the supported workstream:
 
