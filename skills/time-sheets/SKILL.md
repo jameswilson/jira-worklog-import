@@ -45,9 +45,11 @@ Prepare worklogs for review; do not submit, approve, or alter existing Tempo wor
    and no issue clearly wins by supported duration and task/activity count, use
    the playbook's ordered Jira overhead-ticket fallback before flagging it.
    Map ordinary Drupal contribution to `CONTRIB-25` using the playbook's
-   canonical general-Drupal, DDEV, or SVG Image Field title. Treat contribution
-   associated with IU, `iu_paragraphs`, or Rivet as IULD8 work when a suitable
-   IULD8 ticket is evidenced in the same timeframe or local day.
+   canonical Jira-summary title and put the supported general-Drupal, DDEV, or
+   SVG Image Field workstream and concrete activity in the notes. Treat
+   contribution associated with IU, `iu_paragraphs`, or Rivet as IULD8 work
+   when a suitable IULD8 ticket is evidenced in the same timeframe or local
+   day.
    Preserve separate evidence-backed work chunks at their observed times. Do
    not combine non-contiguous blocks merely to reduce their rounded total, and
    do not relocate time into an otherwise empty part of the day. Anchor each

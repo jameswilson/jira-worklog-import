@@ -222,7 +222,7 @@ only the minimum additional local evidence needed to resolve the ambiguity:
 - To complete reconciliation autonomously when possible, consult prior manual
   Timing entries and prior billing activity available within the standing or
   separately authorized sources. Earlier days or months can suggest likely Jira
-  tickets, short-description conventions, and recurring project or epic
+  tickets, worklog-note wording conventions, and recurring project or epic
   mappings. Treat these as corroborating patterns only: never copy a ticket
   solely because it is common, and never override stronger current-day
   timestamps or context. If ambiguity remains, use the project epic fallback or
@@ -273,29 +273,31 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   `1:23`. Preserve `HH:MM:SS` only where a machine-readable schema, command, or
   source value requires it, including Timing export and importer fields.
 - Map Drupal contribution work to Jira issue `CONTRIB-25` by default. Use the
-  exact canonical title that matches the supported workstream:
+  same canonical Jira-summary title required for every importable row below;
+  do not put the contribution workstream or entry-specific activity in the
+  title. Put that information in the notes instead:
 
-  - `CONTRIB-25 - drupal contrib work` for general Drupal contribution,
-    including Drupal core patches, Drupal.org dashboard and issue-queue review,
-    and cross-pollinating reviews or comments among Drupal.org issues. Notes
-    should concisely name the concrete issues, modules, patches, reviews, or
-    outcomes, following established patterns such as `Drupal core issues: ...`
-    or `Drupal: ...; My dashboard` without copying timestamps.
-  - `CONTRIB-25 - ddev contrib work` for work on DDEV, including DDEV tooling,
-    `ddev-drupal-contrib`, DDEV documentation or sites, and DDEV issue, pull
-    request, or workflow review. Notes should identify the DDEV component and
-    concrete activity or outcome.
-  - `CONTRIB-25 - svg image field contrib` for work on the user's
-    `svg_image_field` contribution project, including its issue queue,
-    maintenance, tests, releases, security/dependency work, documentation, and
-    related SVG sanitizer integration. Notes should identify the concrete
-    module work or outcome.
+  - For general Drupal contribution, including Drupal core patches, Drupal.org
+    dashboard and issue-queue review, and cross-pollinating reviews or comments
+    among Drupal.org issues, concisely name the concrete issues, modules,
+    patches, reviews, or outcomes. Established note patterns include
+    `Drupal core issues: ...` or `Drupal: ...; My dashboard`, without copying
+    timestamps.
+  - For DDEV work, including DDEV tooling, `ddev-drupal-contrib`, DDEV
+    documentation or sites, and DDEV issue, pull request, or workflow review,
+    identify the DDEV component and concrete activity or outcome.
+  - For the user's `svg_image_field` contribution project, including its issue
+    queue, maintenance, tests, releases, security/dependency work,
+    documentation, and related SVG sanitizer integration, identify the
+    concrete module work or outcome.
 
-  Historical Timing entries are corroborating formatting evidence for these
-  titles and note styles, but current-day evidence still controls the workstream
-  and duration. When a block mixes workstreams, split it only when the evidence
-  supports a defensible split; otherwise use the dominant supported workstream
-  and describe the secondary activity in the notes.
+  Historical Timing entries are corroborating evidence for workstream
+  classification and note style, but old workstream-specific titles are not a
+  substitute for a verified canonical Jira issue summary. Current-day evidence
+  still controls the workstream and duration. When a block mixes workstreams,
+  split it only when the evidence supports a defensible split; otherwise use
+  the dominant supported workstream and describe the secondary activity in the
+  notes.
 - Apply an IULD8 override before the `CONTRIB-25` default when Drupal.org or
   repository activity is materially related to Indiana University, IU,
   `iu_paragraphs`, or Rivet. Inspect IULD8 activity in the same timeframe first
@@ -317,9 +319,17 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   Apply the earlier evidence-based boundary procedure when normalizing an
   existing entry; do not rewrite an existing boundary solely to conform to this
   new-entry placement rule.
-- Give every importable row one primary Jira issue. Start its title with the
-  issue key and a concise description, for example `CHEM-123 - Review migration
-  results`.
+- Give every importable row one primary Jira issue. Its Timing title must be
+  exactly `<JIRA-KEY> - <canonical Jira issue summary>`, using the issue's
+  original Jira summary/title. Treat the title as routing and recognition
+  metadata: do not append entry-specific work details, outcomes, workstream
+  labels, timestamps, or other commentary.
+- Obtain the canonical summary through authenticated read-only Jira access or
+  reuse a previously verified canonical summary for that exact issue. Do not
+  synthesize, abbreviate, or guess it. If the canonical summary cannot be
+  verified, flag the entry for review rather than inventing a title. Apply this
+  format prospectively; do not rewrite existing Timing, Jira, or Tempo records
+  solely to normalize their titles.
 - File a client meeting on that client's designated meeting issue. The default
   convention is the project's `-1` issue (for example `IULD8-1`, `CHEM-1`, or
   `CCC-1`) when that issue is the project's established Client Meetings ticket.
@@ -331,18 +341,20 @@ only the minimum additional local evidence needed to resolve the ambiguity:
   the meeting if no defensible meeting issue can be identified. This rule
   applies to the meeting itself, not separately evidenced client-task work that
   is permitted to overlap an overarching meeting under the rules above.
-- Use notes to summarize concrete surrounding activity: files or pages reviewed,
-  changes made, tests run, decisions made, and relevant collaboration. For a
-  mixed block, name every relevant ticket in the notes and identify which work
-  belongs to the primary ticket.
+- Use notes to summarize the concrete work performed: files or pages reviewed,
+  changes made, tests run, decisions made, and relevant collaboration. Notes
+  are the source for the imported Jira or Tempo worklog comment, so keep them
+  specific, concise, and suitable for that audience. For a mixed block, name
+  every relevant ticket in the notes and identify which work belongs to the
+  primary ticket.
 - Do not repeat a project-name prefix in notes when the Timing project and
-  title already make that context clear; for example, avoid `ARB: ...` on an
-  Arboretum entry whose title already identifies the work. For a shared or
-  cross-cutting ticket where the project alone is not enough context—especially
-  `BSP-598`—begin the notes with the consistent issue-and-workstream prefix
-  drawn from the title, such as `BSP-598 - AI Research: ...`, followed by the
-  fuller activity description. Use this exception to disambiguate otherwise
-  arbitrary detailed notes, not to duplicate labels mechanically.
+  canonical title already make that context clear; for example, avoid `ARB:
+  ...` on an Arboretum entry whose project and Jira issue already identify the
+  work. For a shared or cross-cutting ticket where the project and canonical
+  Jira summary are not enough context—especially `BSP-598`—begin the notes with
+  a concise workstream label such as `AI Research: ...`, followed by the fuller
+  activity description. Do not repeat the Jira key or canonical issue summary
+  merely to construct that label.
 - Omit the label `Private Browsing` from notes when creating or cleaning up
   Timing entries. It is an implementation detail, not useful work context, and
   can disclose more than the entry needs. Describe only the supported task,
@@ -482,7 +494,7 @@ billability, duration shape, and wording pattern. Use them to improve:
 - segmentation, consolidation, and duration suggestions within this playbook's
   fixed continuity and rounding rules;
 - billability suggestions; and
-- title and note wording.
+- canonical Jira-summary accuracy and note wording.
 
 Current-day evidence and explicit user direction always outrank historical
 examples. Historical frequency alone never proves that a Jira issue, project,
@@ -491,14 +503,17 @@ duration, or billing classification applies today.
 Update `preferences.json` only with human-readable, evidence-linked preferences
 and confidence. A repeated correction may become a high-confidence preference
 after at least three independent reviewed runs with no material contradiction.
-One-off corrections remain examples. Learned preferences may not weaken the
-evidence threshold, continuity rule, rounding rules, privacy limits, duplicate
-checks, database safeguards, or authorization boundaries. Only an explicit
-user-approved playbook edit may change those policies.
+One-off corrections remain examples. An explicit user-declared preference may
+be recorded immediately at high confidence; it need not wait for three reviewed
+runs, but current-day evidence and later explicit direction still outrank it.
+Learned preferences may not weaken the evidence threshold, continuity rule,
+rounding rules, privacy limits, duplicate checks, database safeguards, or
+authorization boundaries. Only an explicit user-approved playbook edit may
+change those policies.
 
 Use deterministic code for timestamps, duration arithmetic, rounding,
 fingerprints, coverage, duplicate detection, manifests, and receipts. Use an
-LLM for evidence synthesis, candidate Jira ranking, and concise descriptions.
+LLM for evidence synthesis, candidate Jira ranking, and concise worklog notes.
 Do not automatically retrain or fine-tune a model. Retrieval over reviewed
 examples is the default learning mechanism; any later model training requires a
 separately reviewed dataset, evaluation plan, privacy review, and authorization.
