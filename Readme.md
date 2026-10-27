@@ -33,6 +33,18 @@ JIRA_PASS=""
 php jira-worklog-import.php --dry-run
 ```
 
+The importer first runs a local review-learning preflight against every covered
+manifest in `worklogs/learning/pending/`. It reads current Timing entries,
+records only unambiguous reviewed outcomes, and never contacts Jira or Tempo.
+Run that component by itself with:
+
+```
+php review-learning.php
+```
+
+Learning receipts are separate from remote filing receipts. Remote Jira filing
+is still non-idempotent and can create duplicates if the importer is rerun.
+
 * Look at output to see if columns were parsed correctly.
 * Only when submission is explicitly authorized, omit `--dry-run` to perform
   the final Jira import:

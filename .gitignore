@@ -5,3 +5,5 @@ vendor
 *.txt
 *.csv
 *.json
+!tests/fixtures/**/*.json
+worklogs/learning/.review-learning.lock

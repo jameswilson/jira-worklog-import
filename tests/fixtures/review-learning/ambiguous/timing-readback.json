@@ -1,0 +1,4 @@
+[
+  {"timing_entry_id":"300","project":"Project A","title":"AAA-1 - Duplicate","notes":"Same","duration":"0:15:00","startDate":"2026-10-05T14:00:00Z","endDate":"2026-10-05T14:15:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"301","project":"Project A","title":"AAA-1 - Duplicate","notes":"Same","duration":"0:15:00","startDate":"2026-10-05T14:00:00Z","endDate":"2026-10-05T14:15:00Z","billingStatus":"Billable"}
+]

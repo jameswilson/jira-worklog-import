@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "run_id": "fixture-filtered",
+  "created_at": "2026-01-01T00:00:00Z",
+  "requested_local_dates": ["2026-10-05"],
+  "timezone": "America/Guayaquil",
+  "expected_review_export_path": "files/All Activities.json",
+  "source_state": {"existing_timing_entry_ids": ["401"]},
+  "proposed_entries": [
+    {"proposal_id":"filtered","verified_timing_entry_id":"400","project":"Project A","primary_jira_key":"AAA-1","title":"AAA-1 - Filtered","notes":"One row","start":"2026-10-05T09:00:00-05:00","end":"2026-10-05T09:15:00-05:00","normalized_duration_seconds":900,"billing_classification":"billable"}
+  ]
+}

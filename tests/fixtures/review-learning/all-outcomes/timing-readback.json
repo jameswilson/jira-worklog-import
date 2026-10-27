@@ -1,0 +1,14 @@
+[
+  {"timing_entry_id":"100","project":"Project A","title":"AAA-1 - Accepted","notes":"Accepted note","duration":"0:15:00","startDate":"2026-10-05T14:00:00Z","endDate":"2026-10-05T14:15:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"101","project":"Project B","title":"BBB-2 - Canonical title","notes":"Edited note","duration":"0:15:00","startDate":"2026-10-05T14:30:00Z","endDate":"2026-10-05T14:45:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"102","project":"Project C","title":"CCC-30 - Reassigned issue","notes":"Reassign this","duration":"0:15:00","startDate":"2026-10-05T15:00:00Z","endDate":"2026-10-05T15:15:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"103","project":"Project D","title":"DDD-4 - Time edit","notes":"Move boundaries","duration":"0:15:00","startDate":"2026-10-05T15:31:00Z","endDate":"2026-10-05T15:46:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"104","project":"Project E","title":"EEE-5 - Duration edit","notes":"Extend duration","duration":"0:20:00","startDate":"2026-10-05T16:00:00Z","endDate":"2026-10-05T16:20:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"105","project":"Project F","title":"FFF-6 - Billing edit","notes":"Change billing","duration":"0:15:00","startDate":"2026-10-05T16:30:00Z","endDate":"2026-10-05T16:45:00Z","billingStatus":"Not Billable"},
+  {"timing_entry_id":"207","project":"Project H","title":"HHH-8 - Split part one","notes":"Split entry one","duration":"0:15:00","startDate":"2026-10-05T17:30:00Z","endDate":"2026-10-05T17:45:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"208","project":"Project H","title":"HHH-8 - Split part two","notes":"Split entry two","duration":"0:15:00","startDate":"2026-10-05T17:45:00Z","endDate":"2026-10-05T18:00:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"209","project":"Project I","title":"III-9 - Merge","notes":"Merged entry","duration":"0:30:00","startDate":"2026-10-05T18:15:00Z","endDate":"2026-10-05T18:45:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"210","project":"Project J","title":"JJJ-10 - Replacement","notes":"Replacement entry","duration":"0:15:00","startDate":"2026-10-05T19:00:00Z","endDate":"2026-10-05T19:15:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"111","project":"Project K","title":"KKK-11 - Manual addition","notes":"Original remains","duration":"0:15:00","startDate":"2026-10-06T01:00:00Z","endDate":"2026-10-06T01:15:00Z","billingStatus":"Billable"},
+  {"timing_entry_id":"211","project":"Project K","title":"KKK-11 - Manual addition","notes":"Related manual detail","duration":"0:05:00","startDate":"2026-10-06T01:05:00Z","endDate":"2026-10-06T01:10:00Z","billingStatus":"Billable"}
+]
