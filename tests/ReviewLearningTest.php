@@ -280,7 +280,7 @@ final class ReviewLearningTestSuite {
     $database = new SQLite3($path);
     $database->exec('CREATE TABLE Project (id INTEGER PRIMARY KEY, title TEXT)');
     $database->exec('CREATE TABLE TaskActivity (id INTEGER PRIMARY KEY, startDate REAL, endDate REAL, projectID INTEGER, title TEXT, notes TEXT, isDeleted INTEGER, property_bag TEXT)');
-    $start = (new DateTimeImmutable('2026-10-05T14:00:00Z'))->getTimestamp() - 978307200;
+    $start = (new DateTimeImmutable('2026-10-05T14:00:00Z'))->getTimestamp();
     $end = $start + 900;
     $database->exec("INSERT INTO Project VALUES (1, 'Project A')");
     $database->exec("INSERT INTO TaskActivity VALUES (700, $start, $end, 1, 'AAA-1 - SQLite', 'Read only', 0, '{\"_billing_status\":\"billable\"}')");
@@ -290,6 +290,8 @@ final class ReviewLearningTestSuite {
     $readback = (new SqliteTimingEntryProvider($path))->read(['2026-10-05'], new DateTimeZone('America/Guayaquil'));
     $this->same(1, count($readback->entries), 'SQLite provider reads fixture entry');
     $this->same('700', $readback->entries[0]['timing_entry_id'], 'SQLite provider preserves stable ID');
+    $this->same('2026-10-05T14:00:00+00:00', $readback->entries[0]['startDate'], 'SQLite provider treats startDate as Unix epoch seconds');
+    $this->same('2026-10-05T14:15:00+00:00', $readback->entries[0]['endDate'], 'SQLite provider treats endDate as Unix epoch seconds');
     $this->same('sqlite3_readonly_fallback', $readback->method, 'SQLite provider reports read-only method');
     $this->same($before, hash_file('sha256', $path), 'SQLite provider does not mutate database');
   }

@@ -85,8 +85,6 @@ final class JsonTimingEntryProvider implements TimingEntryProvider {
 
 final class SqliteTimingEntryProvider implements TimingEntryProvider {
 
-  private const APPLE_EPOCH_OFFSET = 978307200;
-
   public function __construct(private readonly string $databasePath) {
   }
 
@@ -105,9 +103,9 @@ final class SqliteTimingEntryProvider implements TimingEntryProvider {
     foreach (array_values(array_unique($localDates)) as $index => $date) {
       $start = new DateTimeImmutable($date . ' 00:00:00', $timezone);
       $end = $start->modify('+1 day');
-      $startApple = $start->getTimestamp() - self::APPLE_EPOCH_OFFSET;
-      $endApple = $end->getTimestamp() - self::APPLE_EPOCH_OFFSET;
-      $clauses[] = sprintf('(t.startDate >= %d AND t.startDate < %d)', $startApple, $endApple);
+      $startBoundary = $start->getTimestamp();
+      $endBoundary = $end->getTimestamp();
+      $clauses[] = sprintf('(t.startDate >= %d AND t.startDate < %d)', $startBoundary, $endBoundary);
     }
     if ($clauses === []) {
       return new TimingReadback([], [], 'sqlite_readonly', $this->databasePath);
@@ -135,8 +133,8 @@ SQL;
 
     $entries = [];
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-      $startEpoch = (int) round((float) $row['startDate'] + self::APPLE_EPOCH_OFFSET);
-      $endEpoch = (int) round((float) $row['endDate'] + self::APPLE_EPOCH_OFFSET);
+      $startEpoch = (int) round((float) $row['startDate']);
+      $endEpoch = (int) round((float) $row['endDate']);
       $propertyBag = json_decode((string) $row['property_bag'], TRUE);
       $billing = is_array($propertyBag) ? ($propertyBag['_billing_status'] ?? 'unspecified') : 'unspecified';
       $entries[] = [
