@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "run_id": "fixture-all-outcomes",
+  "status": "pending_user_review",
+  "created_at": "2026-01-01T00:00:00Z",
+  "requested_local_dates": ["2026-10-05"],
+  "timezone": "America/Guayaquil",
+  "expected_review_export_path": "files/All Activities.json",
+  "source_state": {
+    "existing_timing_entry_ids": []
+  },
+  "proposed_entries": [
+    {
+      "proposal_id": "accepted",
+      "verified_timing_entry_id": "100",
+      "project": "Project A",
+      "primary_jira_key": "AAA-1",
+      "title": "AAA-1 - Accepted",
+      "notes": "Accepted note",
+      "start": "2026-10-05T09:00:00-05:00",
+      "end": "2026-10-05T09:15:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "edited",
+      "verified_timing_entry_id": "101",
+      "project": "Project B",
+      "primary_jira_key": "BBB-2",
+      "title": "BBB-2 - Original title",
+      "notes": "Original note",
+      "start": "2026-10-05T09:30:00-05:00",
+      "end": "2026-10-05T09:45:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "reassigned",
+      "verified_timing_entry_id": "102",
+      "project": "Project C",
+      "primary_jira_key": "CCC-3",
+      "title": "CCC-3 - Original issue",
+      "notes": "Reassign this",
+      "start": "2026-10-05T10:00:00-05:00",
+      "end": "2026-10-05T10:15:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable",
+      "retrieval_facets": {
+        "issue_type": "Task",
+        "entry_type": "client_work",
+        "repository_signatures": ["project-c-repository"],
+        "activity_signatures": ["sprint-board-review"],
+        "wording_pattern": "canonical-title-specific-notes"
+      }
+    },
+    {
+      "proposal_id": "time-changed",
+      "verified_timing_entry_id": "103",
+      "project": "Project D",
+      "primary_jira_key": "DDD-4",
+      "title": "DDD-4 - Time edit",
+      "notes": "Move boundaries",
+      "start": "2026-10-05T10:30:00-05:00",
+      "end": "2026-10-05T10:45:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "duration-changed",
+      "verified_timing_entry_id": "104",
+      "project": "Project E",
+      "primary_jira_key": "EEE-5",
+      "title": "EEE-5 - Duration edit",
+      "notes": "Extend duration",
+      "start": "2026-10-05T11:00:00-05:00",
+      "end": "2026-10-05T11:15:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "billing-changed",
+      "verified_timing_entry_id": "105",
+      "project": "Project F",
+      "primary_jira_key": "FFF-6",
+      "title": "FFF-6 - Billing edit",
+      "notes": "Change billing",
+      "start": "2026-10-05T11:30:00-05:00",
+      "end": "2026-10-05T11:45:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "deleted",
+      "verified_timing_entry_id": "106",
+      "project": "Project G",
+      "primary_jira_key": "GGG-7",
+      "title": "GGG-7 - Delete",
+      "notes": "Delete entry",
+      "start": "2026-10-05T12:00:00-05:00",
+      "end": "2026-10-05T12:15:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "split",
+      "verified_timing_entry_id": "107",
+      "project": "Project H",
+      "primary_jira_key": "HHH-8",
+      "title": "HHH-8 - Split",
+      "notes": "Split entry",
+      "start": "2026-10-05T12:30:00-05:00",
+      "end": "2026-10-05T13:00:00-05:00",
+      "normalized_duration_seconds": 1800,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "merge-a",
+      "verified_timing_entry_id": "108",
+      "project": "Project I",
+      "primary_jira_key": "III-9",
+      "title": "III-9 - Merge",
+      "notes": "Merge first",
+      "start": "2026-10-05T13:15:00-05:00",
+      "end": "2026-10-05T13:30:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "merge-b",
+      "verified_timing_entry_id": "109",
+      "project": "Project I",
+      "primary_jira_key": "III-9",
+      "title": "III-9 - Merge",
+      "notes": "Merge second",
+      "start": "2026-10-05T13:30:00-05:00",
+      "end": "2026-10-05T13:45:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "replaced",
+      "verified_timing_entry_id": "110",
+      "project": "Project J",
+      "primary_jira_key": "JJJ-10",
+      "title": "JJJ-10 - Replace",
+      "notes": "Replace entry",
+      "start": "2026-10-05T14:00:00-05:00",
+      "end": "2026-10-05T14:15:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    },
+    {
+      "proposal_id": "manual-addition",
+      "verified_timing_entry_id": "111",
+      "project": "Project K",
+      "primary_jira_key": "KKK-11",
+      "title": "KKK-11 - Manual addition",
+      "notes": "Original remains",
+      "start": "2026-10-05T20:00:00-05:00",
+      "end": "2026-10-05T20:15:00-05:00",
+      "normalized_duration_seconds": 900,
+      "billing_classification": "billable"
+    }
+  ]
+}

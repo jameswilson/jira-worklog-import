@@ -20,8 +20,6 @@
  *       (ie: debug, source file)
  */
 
-require __DIR__ . '/vendor/autoload.php';
-
 use Dotenv\Dotenv;
 use JiraRestApi\Configuration\DotEnvConfiguration;
 use JiraRestApi\Issue\IssueService;
@@ -36,6 +34,23 @@ if ($unsupported_arguments) {
   exit(2);
 }
 $dry_run = in_array('--dry-run', $arguments, TRUE);
+
+// Learn from a qualifying reviewed Timing export before either dry-run parsing
+// or remote filing. This local preflight deliberately has no Jira/Tempo client
+// dependency, and a learning deferral does not change the legacy import flow.
+require __DIR__ . '/src/ReviewLearning/bootstrap.php';
+try {
+  $learning_result = \JiraWorklogImport\ReviewLearning\ReviewLearningPreflight::run(__DIR__);
+  foreach (\JiraWorklogImport\ReviewLearning\ReviewLearningPreflight::report($learning_result) as $learning_line) {
+    print($learning_line . PHP_EOL);
+  }
+}
+catch (Throwable $exception) {
+  fwrite(STDERR, 'Review learning preflight deferred safely: ' . $exception->getMessage() . PHP_EOL);
+}
+fwrite(STDERR, 'WARNING: Jira worklog filing remains non-idempotent; local learning receipts do not prevent remote duplicates.' . PHP_EOL);
+
+require __DIR__ . '/vendor/autoload.php';
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
