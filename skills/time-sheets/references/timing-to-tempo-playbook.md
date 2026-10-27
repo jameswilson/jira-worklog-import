@@ -132,9 +132,20 @@ project `AGENTS.md` only routes applicable work to the `time-sheets` skill, and
    Preserve each normalized entry's project, title, intent, and billing
    classification. Use only clearly supported normalized intervals as coverage
    for the remainder of the day's reconstruction.
+   Before deciding whether or how much of a `BSP-536` standup belongs to client
+   projects, retrieve and review the corresponding BSP standup transcript from
+   start to finish. Use timestamped topic boundaries, speaker turns, and
+   explicit project or ticket discussion to measure each supported client
+   segment; do not estimate duration from a bare project mention, transcript
+   summary, or Timing activity alone. Corroborate the project or ticket identity
+   with Timing, Jira, browser, chat, or repository evidence when needed. If the
+   matching transcript is missing, inaccessible, or lacks enough timing detail,
+   report that limitation and flag the client-discussion allocation rather than
+   inferring it.
+
    Retain one `BSP-536` entry covering the entire recurring standup. This is an
-   explicit exception to the usual no-overlap rule: when clearly evidenced
-   browser history, chats, or other activity establishes active work on a
+   explicit exception to the usual no-overlap rule: when the transcript and any
+   needed corroborating evidence establish discussion or active work on a
    specific client project or task during standup, create a separate overlapping
    entry for that client task in supported 15-minute increments. Do not infer a
    specific task from weak context. Apply the analogous exception to an
@@ -199,11 +210,15 @@ only the minimum additional local evidence needed to resolve the ambiguity:
 - Request explicit access or authorization for Cursor, ChatGPT, Codex, or other
   non-App application-history storage and for browser, email, or calendar data.
   The request must identify the minimum source and time window needed.
+- A bounded time-sheet request that includes a `BSP-536` standup authorizes
+  read-only access to only the corresponding BSP standup transcript for the
+  requested date or dates. This narrow exception does not authorize browsing
+  unrelated transcripts, Drive files, messages, or other cloud records.
 - Treat Cursor, ChatGPT, Codex, and other app-local histories as
   privacy-sensitive. Inspect only the records and time window necessary for the
-  disputed block. Except for the read-only Jira research authorized below, do
-  not access cloud data, fetch messages, or read or modify remote records
-  without explicit authorization.
+  disputed block. Except for the read-only BSP standup transcript and Jira
+  research authorized here, do not access cloud data, fetch messages, or read
+  or modify remote records without explicit authorization.
 - To complete reconciliation autonomously when possible, consult prior manual
   Timing entries and prior billing activity available within the standing or
   separately authorized sources. Earlier days or months can suggest likely Jira
